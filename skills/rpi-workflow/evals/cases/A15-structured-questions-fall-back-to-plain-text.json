@@ -1,0 +1,44 @@
+{
+  "id": "A15",
+  "title": "Structured questions fall back to plain text",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill for a new feature: greetings in other languages."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "question-count",
+      "turns": "last",
+      "max": 1,
+      "min": 1
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "recommended"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "(^|\\n)\\s*(\\*\\*)?(\\(?[A-D1-4][.)]|- )"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "own answer|free[- ]text|something else|other answer|in your own words|write[- ]in"
+    }
+  ]
+}

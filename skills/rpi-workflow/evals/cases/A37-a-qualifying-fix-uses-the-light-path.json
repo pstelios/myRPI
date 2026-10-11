@@ -1,0 +1,83 @@
+{
+  "id": "A37",
+  "title": "A qualifying fix uses the light path",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill for a bug fix named trim-names: greet does not trim surrounding whitespace from names, although the completed greeting feature specifies it (scenario \"Names are trimmed\"). Nothing else changes. Please use the light path."
+    },
+    {
+      "repeat": "Use the recommended option for this and any other question. If you are showing me a summary to confirm, I confirm it and you may write the file.",
+      "until": [
+        {
+          "type": "file-exists",
+          "path": "work/features/trim-names/trim-names-info.md"
+        }
+      ],
+      "max": 6
+    },
+    {
+      "say": "Use the rpi-plan skill to plan the trim-names feature.",
+      "new_session": true
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/trim-names/trim-names-plan.md",
+          "key": "status",
+          "equals": "ready"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/trim-names/trim-names-info.md",
+      "key": "track",
+      "equals": "light"
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/features/trim-names/trim-names-plan.md",
+      "key": "status",
+      "equals": "ready"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/trim-names/trim-names.feature",
+      "pattern": "Scenario"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/trim-names/trim-names-plan.md",
+      "pattern": "^## Implementation progress"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/trim-names/trim-names-plan.md",
+      "pattern": "npm run check"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/trim-names/trim-names-plan.md",
+      "pattern": "regression"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "approv"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "A31",
+  "title": "Implementation resumes from the progress checklist",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "volume-in-progress"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to continue implementing the volume feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/volume/volume-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "file-unchanged",
+      "path": "test/shout.test.js"
+    },
+    {
+      "type": "file-exists",
+      "path": "test/whisper.test.js"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/volume/volume-plan.md",
+      "pattern": "Whispering a greeting.*\\|\\s*passing\\s*\\|"
+    },
+    {
+      "type": "verification"
+    }
+  ]
+}

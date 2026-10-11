@@ -1,0 +1,47 @@
+{
+  "id": "A30",
+  "title": "Implementation tracks status through completion",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "status",
+      "equals": "verified"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "Shouting a greeting.*\\|\\s*passing\\s*\\|"
+    },
+    {
+      "type": "verification"
+    }
+  ]
+}

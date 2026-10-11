@@ -1,0 +1,41 @@
+{
+  "id": "A36",
+  "title": "Archiving requires confirmation",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "file-exists",
+      "path": "work/features/shout/shout-plan.md"
+    },
+    {
+      "type": "file-absent",
+      "path": "work/done/shout"
+    }
+  ]
+}

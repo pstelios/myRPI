@@ -1,0 +1,38 @@
+{
+  "id": "A26",
+  "title": "Success metrics may be not applicable",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-brief-r3"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "ready"
+        }
+      ],
+      "max": 6
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Success metrics\\s*\\n+\\s*N/A\\b.*\\S"
+    }
+  ]
+}

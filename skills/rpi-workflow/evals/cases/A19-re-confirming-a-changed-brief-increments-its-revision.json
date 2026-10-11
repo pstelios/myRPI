@@ -1,0 +1,51 @@
+{
+  "id": "A19",
+  "title": "Re-confirming a changed brief increments its revision",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-brief-r2"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill to continue refining the shout feature. New requirement: shout(name, count) appends count extra exclamation marks; count defaults to 0."
+    },
+    {
+      "repeat": "Use the recommended option for this and any other question. If you are showing me a summary to confirm, I confirm it and you may write the file.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-info.md",
+          "key": "revision",
+          "equals": 3
+        }
+      ],
+      "max": 8
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-info.md",
+      "key": "revision",
+      "equals": 3
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-info.md",
+      "key": "created_at",
+      "equals": "2026-10-01T09:00:00Z"
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-info.md",
+      "key": "status",
+      "equals": "confirmed"
+    }
+  ]
+}

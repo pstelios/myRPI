@@ -1,0 +1,50 @@
+{
+  "id": "A21",
+  "title": "Interview offers to accept low-impact defaults together",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-grill-me skill to stress-test this decision: we will add shout(name) to the greeter, returning greet(name) in upper case, in a new module src/shout.js. Those core decisions are settled. Every remaining decision (test naming, export style, documentation wording, and similar details) is low-impact."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "contains",
+          "transcript": "last",
+          "pattern": "accept (all|them all|these)"
+        }
+      ],
+      "max": 4
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "accept all recommended defaults"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "recommended"
+    },
+    {
+      "type": "question-count",
+      "turns": "last",
+      "max": 1,
+      "min": 1
+    }
+  ]
+}

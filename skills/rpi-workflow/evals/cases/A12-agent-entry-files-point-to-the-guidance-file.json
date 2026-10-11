@@ -1,0 +1,49 @@
+{
+  "id": "A12",
+  "title": "Agent entry files point to the guidance file",
+  "fixture": {
+    "seeds": [
+      "empty"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to set up a new project in this empty repository. My answers: Project name: Demo. Description: a command-line tool that prints a friendly greeting. Project type: command-line tool. Stack: Node.js with JavaScript ES modules and no dependencies. Unit tests: the built-in node:test runner via node --test; no end-to-end test tool. Task runner: npm scripts. Data and storage: none. Offline and privacy: fully offline, no telemetry. Deployment: none. Git rules: commit, push, and switch branches only when I ask. Agent rules: none beyond the defaults. Feature folders: features/working and features/done. Architecture document: docs/architecture.md. Agent entry files to create: ASSISTANT.md and .ai/instructions.md."
+    },
+    {
+      "repeat": "Use the recommended option for this and any other question. If you are showing me a summary to confirm, I confirm it and you may write the file. Then write the project and run its verification.",
+      "until": [
+        {
+          "type": "file-exists",
+          "path": "AGENTS.md"
+        }
+      ],
+      "max": 12
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "ASSISTANT.md",
+      "pattern": "AGENTS\\.md"
+    },
+    {
+      "type": "contains",
+      "path": ".ai/instructions.md",
+      "pattern": "AGENTS\\.md"
+    },
+    {
+      "type": "line-count-max",
+      "path": "ASSISTANT.md",
+      "max": 6
+    },
+    {
+      "type": "line-count-max",
+      "path": ".ai/instructions.md",
+      "max": 6
+    }
+  ]
+}

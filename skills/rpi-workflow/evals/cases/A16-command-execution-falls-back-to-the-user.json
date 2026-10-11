@@ -1,0 +1,54 @@
+{
+  "id": "A16",
+  "title": "Command execution falls back to the user",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ]
+  },
+  "disable": [
+    "structured-question",
+    "command-run"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "contains",
+          "transcript": "last",
+          "pattern": "npm run check"
+        }
+      ],
+      "max": 3
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "npm run check"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "output|result|paste|report"
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "status",
+      "not": "verified"
+    },
+    {
+      "type": "not-contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "\\|\\s*passing\\s*\\|"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "A29",
+  "title": "Implementation reports a brief changed after planning",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ],
+    "frontmatter": {
+      "work/features/shout/shout-info.md": {
+        "revision": 2
+      }
+    }
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "revision"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "drift|changed|newer"
+    }
+  ]
+}

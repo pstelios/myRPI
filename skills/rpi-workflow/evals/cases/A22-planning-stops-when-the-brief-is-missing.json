@@ -1,0 +1,28 @@
+{
+  "id": "A22",
+  "title": "Planning stops when the brief is missing",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the shout feature."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "rpi-refine"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "id": "A32",
+  "title": "Implementation respects its write scope",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "file-unchanged",
+      "path": "work/features/shout/shout-info.md"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "AGENTS.md"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "docs/design.md"
+    },
+    {
+      "type": "changes-within",
+      "paths": [
+        "src/",
+        "test/",
+        "work/features/shout/shout-plan.md",
+        "work/features/shout/shout.feature"
+      ]
+    }
+  ]
+}

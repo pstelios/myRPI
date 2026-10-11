@@ -1,0 +1,38 @@
+{
+  "id": "A38",
+  "title": "A behavior-changing change is refused the light path",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill for a feature named shout: add a new exported shout(name) function that returns the greeting in upper case. Please use the light path."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "does not qualify for the light path"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "behavio|contract"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "full track"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "A25",
+  "title": "A persisted-data change requires a rollback note",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "history-brief"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the history-timestamps feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/history-timestamps/history-timestamps-plan.md",
+          "key": "status",
+          "equals": "ready"
+        }
+      ],
+      "max": 6
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "work/features/history-timestamps/history-timestamps-plan.md",
+      "pattern": "^## Rollback and compatibility\\s*$"
+    }
+  ]
+}

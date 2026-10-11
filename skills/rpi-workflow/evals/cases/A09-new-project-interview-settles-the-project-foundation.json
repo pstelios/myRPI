@@ -1,0 +1,73 @@
+{
+  "id": "A09",
+  "title": "New-project interview settles the project foundation",
+  "fixture": {
+    "seeds": [
+      "empty"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to set up a new project here. It is called Demo: a command-line tool that prints a friendly greeting."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "contains",
+          "transcript": "last",
+          "pattern": "^\\s*(#+\\s*|\\*\\*)?\\s*Summary\\b"
+        }
+      ],
+      "max": 16
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "question-count",
+      "turns": "all",
+      "max": 1
+    },
+    {
+      "type": "contains",
+      "transcript": "all",
+      "pattern": "recommended"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "Demo"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "command-line|CLI"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "stack|language|framework"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "test"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "task runner|scripts"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "git|commit"
+    }
+  ]
+}

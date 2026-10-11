@@ -1,0 +1,56 @@
+{
+  "id": "A35",
+  "title": "An unplanned change to a completed feature needs a decision",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "polite-unlisted"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the polite feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "contains",
+          "path": "work/features/polite/polite-plan.md",
+          "pattern": "Implementation changes from approved plan"
+        }
+      ],
+      "max": 3
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "work/features/polite/polite-plan.md",
+      "pattern": "Implementation changes from approved plan"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/polite/polite-plan.md",
+      "pattern": "greeting"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "work/done/greeting/greeting.feature"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "greeting"
+    },
+    {
+      "type": "question-count",
+      "turns": "last",
+      "min": 1
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "A08",
+  "title": "rpi-init offers new-project setup in an empty repository",
+  "fixture": {
+    "seeds": [
+      "empty"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill."
+    },
+    {
+      "repeat": "Yes, set up a new project.",
+      "until": [
+        {
+          "type": "contains",
+          "transcript": "last",
+          "pattern": "recommended"
+        }
+      ],
+      "max": 2
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "any",
+      "pattern": "new project"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "recommended"
+    },
+    {
+      "type": "question-count",
+      "turns": "last",
+      "max": 1,
+      "min": 1
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "A13",
+  "title": "New-project setup writes nothing without confirmation",
+  "fixture": {
+    "seeds": [
+      "empty"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to set up a new project in this empty repository. My answers: Project name: Demo. Description: a command-line tool that prints a friendly greeting. Project type: command-line tool. Stack: Node.js with JavaScript ES modules and no dependencies. Unit tests: the built-in node:test runner via node --test; no end-to-end test tool. Task runner: npm scripts. Data and storage: none. Offline and privacy: fully offline, no telemetry. Deployment: none. Git rules: commit, push, and switch branches only when I ask. Agent rules: none beyond the defaults. Feature folders: features/working and features/done. Architecture document: docs/architecture.md."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "contains",
+          "transcript": "last",
+          "pattern": "^\\s*(#+\\s*|\\*\\*)?\\s*Summary\\b"
+        }
+      ],
+      "max": 10
+    },
+    {
+      "say": "No, I do not confirm this summary. Do not write anything."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    }
+  ]
+}

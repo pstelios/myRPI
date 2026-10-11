@@ -1,0 +1,116 @@
+{
+  "id": "A24",
+  "title": "A written plan records traceability and required sections",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-brief-r3"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "ready"
+        }
+      ],
+      "max": 6
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "brief_revision",
+      "equals": 3
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "suite_version",
+      "equals": "1.0.0"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Summary\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Requirements and acceptance coverage\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Gherkin scenarios\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Technical design\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Architecture review\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Risk register\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Implementation steps\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Expected changes by file\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Existing feature impact\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Verification\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Implementation progress\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-plan.md",
+      "pattern": "^## Dependencies and open decisions\\s*$"
+    },
+    {
+      "type": "file-exists",
+      "path": "work/features/shout/shout.feature"
+    },
+    {
+      "type": "changes-within",
+      "paths": [
+        "work/features/shout/shout-plan.md",
+        "work/features/shout/shout.feature"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "A18",
+  "title": "Early stop writes a draft brief",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill for a new feature named shout: shout(name) returns the greeting for the name in upper case, maybe with options."
+    },
+    {
+      "say": "Stop the interview here. Keep what we have and write the brief now."
+    },
+    {
+      "repeat": "Yes, I confirm. Write the brief.",
+      "until": [
+        {
+          "type": "file-exists",
+          "path": "work/features/shout/shout-info.md"
+        }
+      ],
+      "max": 3
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-info.md",
+      "key": "status",
+      "equals": "draft"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/shout/shout-info.md",
+      "pattern": "## Open questions\\s*\\n+\\s*(?!None identified)\\S"
+    }
+  ]
+}

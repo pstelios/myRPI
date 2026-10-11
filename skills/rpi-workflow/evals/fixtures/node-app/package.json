@@ -1,0 +1,12 @@
+{
+  "name": "greeter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/greet.js",
+  "scripts": {
+    "test": "node --test",
+    "lint": "node scripts/lint.mjs",
+    "check": "node scripts/lint.mjs && node --test"
+  }
+}

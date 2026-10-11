@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  check:
+    desc: Run the suite's static tests and checks, including eval coverage of the behavior specification
+    env:
+      RPI_REPO: '{{.ROOT_DIR}}'
+      RPI_FEATURE: '{{.ROOT_DIR}}/docs/rpi-suite.feature'
+    cmds:
+      - node --test "skills/rpi-workflow/scripts/test/*.test.mjs"
+      - node skills/rpi-workflow/scripts/check-suite.mjs --repo . --feature docs/rpi-suite.feature
+
+  test:agents:
+    desc: Run the agent eval cases in every configured harness (slow; paid model usage). Pass runner options after --, e.g. task test:agents -- --case A09
+    cmds:
+      - node skills/rpi-workflow/scripts/run-evals.mjs --repo . {{.CLI_ARGS}}

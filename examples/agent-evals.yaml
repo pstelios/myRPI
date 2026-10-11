@@ -1,0 +1,29 @@
+# Example agent_evals settings for the "Feature workflow" section of AGENTS.md.
+# Nest this under the `rpi:` key. Verified with Claude Code 2.1.296 and GitHub Copilot CLI 1.0.95
+# on Windows; adjust flags for other versions (check each CLI's --help).
+#
+# The runner creates every fixture in the OS temporary folder and refuses to run when that folder is
+# inside the project, so the permissive permission flags below apply only to disposable fixtures.
+agent_evals:
+  report: docs/agent-eval-results.md        # where the pass/fail report is written
+  skills_dir: .claude/skills                # where fixtures get the suite (loaded by both harnesses)
+  harnesses:
+    - name: claude-code
+      # {session} makes the runner assign a fresh UUID per case, so cases can run in parallel.
+      start: claude -p {prompt} --session-id {session} --permission-mode bypassPermissions
+      resume: claude -p {prompt} --resume {session} --permission-mode bypassPermissions
+      version: claude --version
+      disable:
+        structured-question: --disallowedTools AskUserQuestion
+        # PowerShell is listed for Windows; Monitor also runs commands.
+        command-run: '--disallowedTools Bash,PowerShell,Monitor'
+      env_unset: ['CLAUDE*']                # lets the runner start from inside another session
+      timeout_s: 1200
+    - name: copilot-cli
+      start: copilot -p {prompt} --session-id {session} --allow-all-tools -s --no-auto-update
+      resume: copilot -p {prompt} --resume {session} --allow-all-tools -s --no-auto-update
+      version: copilot --version
+      disable:
+        structured-question: --no-ask-user
+        command-run: --deny-tool shell
+      timeout_s: 1200

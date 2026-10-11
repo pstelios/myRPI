@@ -1,0 +1,72 @@
+{
+  "id": "A01",
+  "title": "Suite adopted in a second application",
+  "fixture": {
+    "seeds": [
+      "python-app"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to configure the feature workflow for this repository."
+    },
+    {
+      "repeat": "Yes, I confirm the proposed configuration. Write it.",
+      "until": [
+        {
+          "type": "contains",
+          "path": "AGENTS.md",
+          "pattern": "^## Feature workflow"
+        }
+      ],
+      "max": 4
+    },
+    {
+      "say": "Use the rpi-refine skill for a small feature: calc should provide subtract(a, b), which returns a minus b.",
+      "new_session": true
+    },
+    {
+      "repeat": "Use the recommended option for this and any other question. If you are showing me a summary to confirm, I confirm it and you may write the file.",
+      "until": [
+        {
+          "type": "glob-exists",
+          "pattern": "specs/working/*/*-info.md"
+        }
+      ],
+      "max": 10
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "AGENTS.md",
+      "pattern": "pytest"
+    },
+    {
+      "type": "contains",
+      "path": "AGENTS.md",
+      "pattern": "make (test|verify)"
+    },
+    {
+      "type": "contains",
+      "path": "AGENTS.md",
+      "pattern": "specs/working"
+    },
+    {
+      "type": "contains",
+      "path": "AGENTS.md",
+      "pattern": "specs/done"
+    },
+    {
+      "type": "glob-exists",
+      "pattern": "specs/working/*/*-info.md"
+    },
+    {
+      "type": "command",
+      "run": "node {suite}/rpi-workflow/scripts/check-suite.mjs --repo ."
+    }
+  ]
+}

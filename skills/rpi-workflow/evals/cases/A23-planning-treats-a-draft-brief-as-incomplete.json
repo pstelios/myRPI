@@ -1,0 +1,41 @@
+{
+  "id": "A23",
+  "title": "Planning treats a draft brief as incomplete",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-brief-draft"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the shout feature."
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "status",
+      "not": "ready"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "rpi-refine"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "open question|draft"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "work/features/shout/shout-info.md"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "A34",
+  "title": "An approved plan amends a completed feature's scenarios",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "polite-listed"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the polite feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/polite/polite-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "path": "work/done/greeting/greeting.feature",
+      "pattern": "@amended-by-polite"
+    },
+    {
+      "type": "contains",
+      "path": "work/done/greeting/greeting.feature",
+      "pattern": "#.*polite"
+    },
+    {
+      "type": "contains",
+      "path": "work/done/greeting/greeting.feature",
+      "pattern": "Hello, Ada\\."
+    }
+  ]
+}

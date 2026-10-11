@@ -1,0 +1,36 @@
+{
+  "id": "A20",
+  "title": "Interview asks one decision per question",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-refine skill for a new feature: greetings for groups of people, for example greetAll(names)."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [],
+      "max": 3
+    }
+  ],
+  "assert": [
+    {
+      "type": "question-count",
+      "turns": "all",
+      "max": 1
+    },
+    {
+      "type": "question-count",
+      "turns": "first",
+      "min": 1,
+      "max": 1
+    }
+  ]
+}

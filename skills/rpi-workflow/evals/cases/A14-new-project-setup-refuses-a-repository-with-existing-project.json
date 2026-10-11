@@ -1,0 +1,32 @@
+{
+  "id": "A14",
+  "title": "New-project setup refuses a repository with existing project files",
+  "fixture": {
+    "seeds": [
+      "node-app"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to set up a brand-new project in this repository."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "not empty|existing (project|files|source)|already contains"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "configur|feature workflow"
+    }
+  ]
+}

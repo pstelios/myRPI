@@ -1,0 +1,47 @@
+{
+  "id": "A05",
+  "title": "rpi-init proposes configuration from repository evidence",
+  "fixture": {
+    "seeds": [
+      "node-app"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-init skill to configure the feature workflow for this repository."
+    }
+  ],
+  "assert": [
+    {
+      "type": "git-clean"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "npm (test|run check)"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "docs/design\\.md"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "node:test|node --test"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "confirm|should I (write|add|apply)|write (this|it)\\b"
+    },
+    {
+      "type": "question-count",
+      "turns": "last",
+      "min": 1
+    }
+  ]
+}

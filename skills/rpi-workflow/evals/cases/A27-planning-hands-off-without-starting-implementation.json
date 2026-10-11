@@ -1,0 +1,60 @@
+{
+  "id": "A27",
+  "title": "Planning hands off without starting implementation",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "shout-approved"
+    ],
+    "frontmatter": {
+      "work/features/shout/shout-plan.md": {
+        "status": "ready"
+      }
+    }
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill for the shout feature. I have reviewed the plan."
+    },
+    {
+      "repeat": "I approve this plan.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "approved"
+        }
+      ],
+      "max": 3
+    }
+  ],
+  "assert": [
+    {
+      "type": "frontmatter",
+      "path": "work/features/shout/shout-plan.md",
+      "key": "status",
+      "equals": "approved"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "rpi-implement"
+    },
+    {
+      "type": "contains",
+      "transcript": "last",
+      "pattern": "fresh|new (chat |agent )?session"
+    },
+    {
+      "type": "changes-within",
+      "paths": [
+        "work/features/shout/shout-plan.md"
+      ]
+    }
+  ]
+}
