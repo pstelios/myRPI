@@ -19,7 +19,7 @@ Run the interview with the protocol in `../rpi-grill-me/SKILL.md` (capability: s
 7. Data and storage: none, local files, a local database, or a remote service.
 8. Offline, privacy, and security constraints.
 9. Deployment target (optional; "not decided" is acceptable).
-10. Repository layout: the working and completed feature folders and the architecture document path.
+10. Repository layout: the working and completed feature folders, optionally a separate folder for the behavior specification (the `.feature` files of completed features), and the architecture document path.
 11. Git rules for the workflow: commit, push, and branch (`never`, `when-asked`, or `allowed`).
 12. Agent rules: any project-wide rules for agents beyond the defaults.
 13. Agent entry files: which files agent environments read first, if any, to create as pointers to the guidance file.
@@ -42,7 +42,7 @@ Recommend choices that keep the shell minimal and runnable offline, and that use
    | Library | The public entry point can be imported and exposes its version or name |
    | Mobile or other | The application starts, or the closest available equivalent |
 
-6. **Completed feature** `<features.completed>/project-shell/`: a brief (`status: confirmed`, `revision: 1`) describing the shell, a plan (`status: verified`) whose progress table marks every health check `passing`, and `project-shell.feature`, whose scenarios are the health checks, each naming its test.
+6. **Completed feature** `<features.completed>/project-shell/`: a brief (`status: confirmed`, `revision: 1`) describing the shell, a plan (`status: verified`) whose progress table marks every health check `passing`, and `project-shell.feature`, whose scenarios are the health checks, each naming its test. The `.feature` file goes to `<features.specifications>/<slug>/` when a specifications folder was chosen, and stays with the brief and plan otherwise.
 7. **Agent entry files**, only those the user named: each is a short pointer (at most a few lines) that tells the reader to follow the guidance file `AGENTS.md`, without repeating its content.
 
 Then run the setup commands and the configured full verification (capability: command-run). Report the output. If anything fails, fix the shell within this write scope and run again; if it still fails, report the failure and do not claim the setup succeeded.

@@ -5,7 +5,7 @@ argument-hint: "Optionally say 'new project' or describe what to configure"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Initialize the RPI Workflow
@@ -27,7 +27,7 @@ Write scope: only the `## Feature workflow` section of `AGENTS.md` (capability: 
 
 1. **Gather evidence** (capability: file-read): build, package, and task-runner files and their scripts or targets; test tools and where their tests live; existing documentation and any folders that hold feature specifications or scenarios; the architecture document; existing agent guidance, including any git rules it states; and the version-control state (capability: version-control). Record what each proposed value is based on.
 2. **Read any existing section.** If `## Feature workflow` exists, parse it and treat it as the starting point: this is an update, never a second section.
-3. **Propose the section** following `../rpi-workflow/references/configuration.md`. Every path, tool, and command must be one that exists in the repository or that its files define; mark anything you could not verify. Prefer folders that already hold feature specifications; otherwise recommend new folders and say they will be created by the first feature. Keep repository-specific values out of the suite; they belong only in this section.
+3. **Propose the section** following `../rpi-workflow/references/configuration.md`. Every path, tool, and command must be one that exists in the repository or that its files define; mark anything you could not verify. Prefer folders that already hold feature specifications; otherwise recommend new folders and say they will be created by the first feature. When the repository keeps its behavior specifications apart from its feature documents (for example next to its tests), propose `features.specifications` for them; otherwise leave the key out. Keep repository-specific values out of the suite; they belong only in this section.
 4. **Show it and ask** (capability: structured-question): the complete proposed section for a new configuration, or the exact differences for an update, with the evidence for each value. Ask the user to confirm writing it, with confirming as the recommended choice and corrections possible as free text.
 5. **On confirmation**, write or replace the section so that exactly one `## Feature workflow` section exists, and leave the rest of the file unchanged. **On decline**, write nothing and stop.
 6. **Check the result.** Read the section back. If Node.js is available, run the suite check from the repository root (capability: command-run): `node` with the path of this suite's `rpi-workflow/scripts/check-suite.mjs`, then `--repo .`. Report its findings. Lifecycle text elsewhere in the guidance file (artifact names, feature folders, plan statuses) is reported by that check; recommend replacing it with a pointer to `rpi-workflow`, but change it only if the user asks and only within the guidance file.

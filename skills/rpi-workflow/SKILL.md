@@ -4,7 +4,7 @@ description: "Shared reference for the rpi feature-workflow suite (rpi-init, rpi
 user-invocable: false
 metadata:
   suite: rpi
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # RPI Workflow Reference

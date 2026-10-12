@@ -1,0 +1,62 @@
+{
+  "id": "A40",
+  "title": "Archiving moves the scenarios to the specifications folder",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured-specs",
+      "shout-approved"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-implement skill to implement the shout feature."
+    },
+    {
+      "repeat": "Use the recommended option. Do not archive the feature yet.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/shout/shout-plan.md",
+          "key": "status",
+          "equals": "verified"
+        }
+      ],
+      "max": 5
+    },
+    {
+      "say": "Yes, archive the shout feature now."
+    }
+  ],
+  "assert": [
+    {
+      "type": "file-exists",
+      "path": "work/done/shout/shout-info.md"
+    },
+    {
+      "type": "file-exists",
+      "path": "work/done/shout/shout-plan.md"
+    },
+    {
+      "type": "file-exists",
+      "path": "work/specs/shout/shout.feature"
+    },
+    {
+      "type": "file-absent",
+      "path": "work/done/shout/shout.feature"
+    },
+    {
+      "type": "file-absent",
+      "path": "work/features/shout"
+    },
+    {
+      "type": "frontmatter",
+      "path": "work/done/shout/shout-plan.md",
+      "key": "status",
+      "equals": "verified"
+    }
+  ]
+}

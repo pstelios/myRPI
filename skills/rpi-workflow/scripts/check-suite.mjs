@@ -151,7 +151,7 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
 
     // no-restated-lifecycle
     if (loaded.exists) {
-      const folders = [section.config?.features?.working, section.config?.features?.completed].filter((f) => typeof f === 'string' && f.trim());
+      const folders = [section.config?.features?.working, section.config?.features?.completed, section.config?.features?.specifications].filter((f) => typeof f === 'string' && f.trim());
       const statuses = PLAN_STATUSES.join('|');
       const checks = [
         ['feature artifact name', /-info\.md\b|-plan\.md\b|<feature>\.feature\b|\w\.feature\b/],

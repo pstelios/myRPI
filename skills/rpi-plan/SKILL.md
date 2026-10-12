@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its refinement brief"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Plan a Feature
@@ -42,7 +42,7 @@ Assign every scenario a test kind from the configuration's `test_mapping` and na
 ## 5. Review architecture and existing features
 
 - Compare the design with the architecture document: module boundaries, data, offline behavior, privacy, accessibility, deployment. Ask the user to confirm the outcome (capability: structured-question): either "no architecture change", or the proposed change and its consequences. An approved change becomes a planned change in the file table; the document itself is not edited during planning.
-- Review completed and working features for overlaps. For each affected feature, state the current behavior, the conflict, and the recommended scenario, code, and test changes, and list completed `.feature` files to amend in the file table. Consequential conflicts are the user's decision before the plan can be `ready`. If nothing is affected, say what was checked.
+- Review completed and working features for overlaps, reading each completed feature's scenarios from its specification location. For each affected feature, state the current behavior, the conflict, and the recommended scenario, code, and test changes, and list completed `.feature` files to amend in the file table. Consequential conflicts are the user's decision before the plan can be `ready`. If nothing is affected, say what was checked.
 
 ## 6. Write the plan
 

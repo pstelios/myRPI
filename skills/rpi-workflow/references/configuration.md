@@ -15,7 +15,8 @@ The suite's scripts parse a documented YAML subset: block maps and sequences, fl
 |---|---|---|
 | `suite_version` | yes | Suite version this configuration was written for. A skill whose `metadata.version` has a different major version warns before continuing. |
 | `features.working` | yes | Folder that holds features under refinement, planning, or implementation. |
-| `features.completed` | yes | Folder that holds completed features (the living behavior specification). |
+| `features.completed` | yes | Folder that holds completed features: their brief and plan, and their `.feature` files unless `features.specifications` is set. |
+| `features.specifications` | no | Folder that holds the living behavior specification: the `.feature` files of completed features, in one `<slug>/` folder each. When set, archiving moves a feature's `.feature` files there and the rest of its folder to `features.completed`. When omitted, the `.feature` files stay in the completed folder. |
 | `architecture` | yes | Architecture document path, or `none`. |
 | `verification.setup` | no | One-time prerequisite commands (installing dependencies or test browsers). |
 | `verification.focused.<kind>` | yes | For each test kind, the command that runs one test file or case; `<file>` or `<case>` marks the placeholder. |
@@ -28,12 +29,12 @@ The test kind `agent-behavior` is recognized by the suite: its tests are eval ca
 
 ## Template
 
-Values in angle brackets are placeholders.
+Values in angle brackets are placeholders. Leave out `specifications` when the scenarios should stay with the completed features.
 
 ```yaml
 rpi:
-  suite_version: 1.0.0
-  features: { working: <working-folder>, completed: <completed-folder> }
+  suite_version: 1.1.0
+  features: { working: <working-folder>, completed: <completed-folder>, specifications: <specification-folder> }
   architecture: <architecture-document-or-none>
   verification:
     setup: [<one-time-setup-command>]

@@ -39,7 +39,7 @@
       "type": "frontmatter",
       "path": "work/features/shout/shout-plan.md",
       "key": "suite_version",
-      "equals": "1.0.0"
+      "equals": "1.1.0"
     },
     {
       "type": "contains",

@@ -89,7 +89,7 @@ describe('Rule: Agent behavior is verified automatically', () => {
     const bad = cells[header.split('|').map((c) => c.trim()).indexOf('stub-bad')];
     assert.equal(good, 'pass');
     assert.match(bad, /^FAIL: file-exists result\.txt/);
-    assert.match(text, /Suite version: 1\.0\.0/);
+    assert.match(text, /Suite version: 1\.1\.0/);
   });
 
   test('Eval runner fails when no harness is configured', () => {

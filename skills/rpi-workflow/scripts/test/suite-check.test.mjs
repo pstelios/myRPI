@@ -122,6 +122,39 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
     assert.match(run.stdout, /^AGENTS\.md:\d+ config .*git/m);
   });
 
+  test('Repository configuration may name a separate specifications folder', () => {
+    const withSpecs = (value) => guidance().replace(
+      'features: { working: specs/active, completed: specs/archive }',
+      `features: { working: specs/active, completed: specs/archive, specifications: ${value} }`,
+    );
+
+    // A folder is accepted, and the configuration is parsed with it.
+    const { root, skills } = tempRepo();
+    writeFileSync(join(root, 'AGENTS.md'), withSpecs('spec/living'));
+    const clean = runNode(checkScript(skills), ['--repo', root]);
+    assert.equal(clean.code, 0, clean.output);
+
+    // The folder is an application-specific value: skill text must not contain it.
+    appendLine(join(skills, 'rpi-implement', 'SKILL.md'), 'Move the scenarios to spec/living when done.');
+    const leaked = runNode(checkScript(skills), ['--repo', root]);
+    assert.equal(leaked.code, 1);
+    assert.match(leaked.stdout, /app-values .*spec\/living/);
+
+    // Guidance outside the configuration section does not name it either.
+    const other = tempRepo();
+    writeFileSync(join(other.root, 'AGENTS.md'), withSpecs('spec/living').replace('A sample project.', 'Scenarios live in spec/living.'));
+    const restated = runNode(checkScript(other.skills), ['--repo', other.root]);
+    assert.equal(restated.code, 1);
+    assert.match(restated.stdout, /no-restated-lifecycle .*spec\/living/);
+
+    // An empty value is reported as a configuration problem.
+    const empty = tempRepo();
+    writeFileSync(join(empty.root, 'AGENTS.md'), withSpecs("''"));
+    const reported = runNode(checkScript(empty.skills), ['--repo', empty.root]);
+    assert.equal(reported.code, 1);
+    assert.match(reported.stdout, /^AGENTS\.md:\d+ config .*features\.specifications/m);
+  });
+
   test('Repository guidance does not restate the lifecycle', { skip: repoSkip }, () => {
     const result = checkSuite({ suiteDir, repoDir });
     assert.deepEqual(findingsFor(result, 'no-restated-lifecycle'), []);

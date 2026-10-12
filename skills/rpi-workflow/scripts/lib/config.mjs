@@ -54,6 +54,9 @@ export function validateConfig(config) {
   if (!nonEmptyString(config.suite_version)) problems.push('missing key suite_version');
   if (!isMap(config.features) || !nonEmptyString(config.features.working)) problems.push('missing key features.working');
   if (!isMap(config.features) || !nonEmptyString(config.features.completed)) problems.push('missing key features.completed');
+  if (isMap(config.features) && config.features.specifications !== undefined && !nonEmptyString(config.features.specifications)) {
+    problems.push('features.specifications must be a non-empty folder when present (leave the key out to keep scenarios with the completed features)');
+  }
   if (!nonEmptyString(config.architecture)) problems.push('missing key architecture (use "none" when there is no architecture document)');
   const v = config.verification;
   if (!isMap(v) || !isMap(v.focused) || !Object.keys(v.focused).length) problems.push('missing key verification.focused');
@@ -87,6 +90,7 @@ export function configValues(config) {
   if (!isMap(config)) return out;
   add(config.features?.working);
   add(config.features?.completed);
+  add(config.features?.specifications);
   add(config.architecture);
   const v = config.verification ?? {};
   (Array.isArray(v.setup) ? v.setup : []).forEach(add);

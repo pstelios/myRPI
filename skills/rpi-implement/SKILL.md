@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its implementation plan"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Implement an Approved Feature
@@ -21,7 +21,7 @@ The lifecycle, statuses, write scopes, gates, progress table, drift, amendments 
 - application code and tests;
 - its plan's `status`, `## Implementation progress`, and `## Implementation changes from approved plan`;
 - its own `.feature` file, only for agreed changes tagged `@changed-from-approved`;
-- completed features' `.feature` files, only where the approved plan lists the change (tagged `@amended-by-<slug>`);
+- completed features' `.feature` files, in their specification location, only where the approved plan lists the change (tagged `@amended-by-<slug>`);
 - the feature folder's location, only for the confirmed archive move.
 
 The brief is read-only. So are the guidance file, the architecture document, other features' artifacts, and the configuration, unless the approved plan lists the change as implementation work. Follow the configured git rules for commits, pushes, and branches (capability: version-control).
@@ -29,7 +29,7 @@ The brief is read-only. So are the guidance file, the architecture document, oth
 ## 1. Preflight and selection
 
 1. Run the lifecycle's preflight (capability: file-read). Without the configuration, change nothing and stop with "Feature workflow configuration is missing. Run rpi-init first."
-2. Identify the feature in `<features.working>/`. If several match, ask which one (capability: structured-question). If the feature is only in `<features.completed>/`, ask whether to reopen it and move it back only after explicit confirmation.
+2. Identify the feature in `<features.working>/`. If several match, ask which one (capability: structured-question). If the feature exists only as a completed feature (in `<features.completed>/` or its specification location), ask whether to reopen it and move it back, with its `.feature` files, only after explicit confirmation.
 3. If the feature has no plan, change nothing and stop with "Run rpi-plan for <slug> first."
 4. Read the brief, the plan, every `.feature` file in the folder, and the files the plan names, plus the relevant guidance, architecture, source, tests, and configuration. Inspect the working-tree state and preserve unrelated changes (capability: version-control).
 
@@ -41,7 +41,7 @@ Check these in order and report every finding before changing anything:
 2. **Drift:** if the brief's `revision` is newer than the plan's `brief_revision`, report "Brief drift: the brief is at revision <n>, the plan was based on revision <m>." and ask whether to re-plan with `rpi-plan` (recommended) or continue. Also report changes since `base_commit` to files the plan expects to change.
 3. **Approval:** continue only if the plan status is `approved`, or `in-progress` or `verified` for resumed work. Otherwise (`draft`, `ready`, `blocked`, missing, or malformed), summarize the plan's scope, scenarios, expected changes, and open decisions, and ask for explicit approval (capability: structured-question). A blocking decision must be resolved first. On an explicit yes, set only `status: approved` and read it back. On anything else, change nothing and stop.
 
-4. **Completed-feature conflicts:** compare every behavior change in the plan with the scenarios of every feature in `<features.completed>/`. If a planned change contradicts a completed scenario that the plan does not list as an amendment, do not implement that change yet: record it under `## Implementation changes from approved plan` and ask the user how to proceed (section 5). This check runs even when the plan says no other feature is affected.
+4. **Completed-feature conflicts:** compare every behavior change in the plan with the scenarios of every completed feature, read from each one's specification location. If a planned change contradicts a completed scenario that the plan does not list as an amendment, do not implement that change yet: record it under `## Implementation changes from approved plan` and ask the user how to proceed (section 5). This check runs even when the plan says no other feature is affected.
 
 ## 3. Build the test mapping
 
@@ -74,11 +74,11 @@ If the work needs something the plan does not cover, such as a scope change, a d
 
 ## 7. Report and archive gate
 
-Report the implemented behavior, the scenario coverage, every required check and its result, and any recorded plan or scenario changes. Say that the feature stays in `<features.working>/<slug>/` until the user confirms archiving, and ask whether to move it to `<features.completed>/<slug>/` (capability: structured-question).
+Report the implemented behavior, the scenario coverage, every required check and its result, and any recorded plan or scenario changes. Say that the feature stays in `<features.working>/<slug>/` until the user confirms archiving, and ask whether to move it to `<features.completed>/<slug>/`, with its `.feature` files going to `<features.specifications>/<slug>/` when `features.specifications` is set (capability: structured-question).
 
 Only an explicit request to archive this feature counts as confirmation. A generic reply such as "use the recommended option", "continue", or "ok" does not; when the reply is not explicit, leave the folder in place and ask again.
 
-- **Confirmed:** move the whole folder with a tracked move where possible (capability: version-control), update references inside the moved artifacts that point to the old path, and verify that all artifacts exist in the new location and none remain in the old one.
+- **Confirmed:** move the folder to `<features.completed>/<slug>/` with a tracked move where possible (capability: version-control). When `features.specifications` is set, move each `.feature` file of the feature to `<features.specifications>/<slug>/` instead, so it does not stay in the folder. Update references that point to the old paths, including links from the moved brief and plan to the `.feature` file, and verify that every artifact exists in its new location and none remain in the old one.
 - **Not confirmed:** leave everything in place and report the implementation as verified, with archiving pending.
 
 Commit, push, or switch branches only as the configured git rules allow.

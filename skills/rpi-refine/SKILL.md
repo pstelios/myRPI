@@ -5,7 +5,7 @@ argument-hint: "Describe the feature or name an existing feature brief"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Refine a Feature
@@ -22,14 +22,14 @@ Write scope: only this feature's brief, `<features.working>/<slug>/<slug>-info.m
 
 ## 2. Choose the feature
 
-1. Look for unfinished work in `<features.working>/`, and for completed features in `<features.completed>/` with the same or a similar slug.
+1. Look for unfinished work in `<features.working>/`, and for completed features, in `<features.completed>/` and any specification location, with the same or a similar slug.
 2. If the request plausibly matches unfinished work, ask whether to continue it or start something new; give each plausible match as its own choice (capability: structured-question). Do not guess.
 3. Continuing: read the feature's files. Treat recorded decisions as context, not as unchangeable facts, and re-verify application facts. If the brief has no frontmatter or lacks fields, follow the lifecycle's legacy rule.
 4. New work: choose a distinct lowercase kebab-case slug. A completed feature is context for new work; reopening it needs the user's explicit confirmation.
 
 ## 3. Ground the feature in the application
 
-Inspect the relevant source, tests, configuration, completed features' scenarios, and the architecture document named in the configuration (capability: file-read). Keep evidence distinct: implemented facts, user decisions, and labeled assumptions or unknowns. Never ask the user for facts the repository can answer.
+Inspect the relevant source, tests, configuration, completed features' scenarios (from their specification locations), and the architecture document named in the configuration (capability: file-read). Keep evidence distinct: implemented facts, user decisions, and labeled assumptions or unknowns. Never ask the user for facts the repository can answer.
 
 ## 4. Choose the track
 

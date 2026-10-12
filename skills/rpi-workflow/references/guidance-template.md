@@ -39,7 +39,7 @@ Feature work follows the shared lifecycle in the `rpi-workflow` skill (`referenc
 ```yaml
 rpi:
   suite_version: <suite version>
-  features: { working: <working folder>, completed: <completed folder> }
+  features: { working: <working folder>, completed: <completed folder>, specifications: <specification folder, or leave out> }
   architecture: <architecture document>
   verification:
     setup: [<install command>]

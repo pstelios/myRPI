@@ -67,6 +67,14 @@ Feature: Portable RPI workflow skill suite
       And the section references the shared lifecycle definition
 
     @static
+    Scenario: Repository configuration may name a separate specifications folder
+      Given the configuration sets "features.specifications" to a folder
+      When the suite check reads the repository guidance file
+      Then it accepts the configuration
+      And it treats the folder as an application-specific value that skill text and other guidance must not contain
+      And it reports an empty value as a configuration problem
+
+    @static
     Scenario: Repository guidance does not restate the lifecycle
       When the suite check reads the repository guidance file outside the "Feature workflow" section
       Then it finds no feature artifact names, feature folder paths, or plan status names
@@ -365,6 +373,14 @@ Feature: Portable RPI workflow skill suite
       Given the plan status is "verified"
       When the user has not confirmed archiving
       Then the feature folder stays in the working location
+
+    @agent
+    Scenario: Archiving moves the scenarios to the specifications folder
+      Given the plan status is "verified"
+      And the configuration names a specifications folder
+      When the user confirms archiving
+      Then the feature folder moves to the completed location without its ".feature" files
+      And the ".feature" files move to the specifications folder
 
   Rule: Small changes may use a light path without skipping gates
 

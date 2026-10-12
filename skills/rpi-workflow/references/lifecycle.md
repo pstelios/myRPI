@@ -32,7 +32,11 @@ A feature has a lowercase kebab-case slug. All of its artifacts live in one fold
 | Implementation plan | `<slug>-plan.md` | `rpi-plan`; `rpi-implement` updates its status, progress, and implementation changes |
 | Behavior scenarios | `<slug>.feature` | `rpi-plan`; `rpi-implement` for agreed changes |
 
-While a feature is in progress, its folder is `<features.working>/<slug>/`. After the archive gate, the whole folder moves to `<features.completed>/<slug>/`. A slug is never reused for different work. Before creating a folder, check both locations for the same or a similar slug.
+While a feature is in progress, its folder is `<features.working>/<slug>/`. After the archive gate, the folder moves to `<features.completed>/<slug>/`.
+
+The behavior scenarios can live apart from the rest of a completed feature. When the configuration sets `features.specifications`, the archive gate moves each of the feature's `.feature` files to `<features.specifications>/<slug>/` instead, and the brief and plan stay in the completed folder. That folder then holds the living behavior specification. Without the key, the `.feature` files stay in the completed folder. A completed feature's **specification location** is `<features.specifications>/<slug>/` when the key is set, and `<features.completed>/<slug>/` otherwise. Everything that reads or edits a completed feature's scenarios uses its specification location.
+
+A slug is never reused for different work. Before creating a folder, check the working, completed, and specification locations for the same or a similar slug.
 
 ## Brief frontmatter
 
@@ -57,7 +61,7 @@ status: draft            # draft | blocked | ready | approved | in-progress | ve
 created_at: "YYYY-MM-DDTHH:MM:SSZ"
 description: "One-sentence implementation goal."
 brief_revision: 1        # the brief revision this plan is based on
-suite_version: 1.0.0     # the suite version that wrote the plan
+suite_version: 1.1.0     # the suite version that wrote the plan
 base_commit: <optional commit id the plan was written against>
 ---
 ```
@@ -83,7 +87,7 @@ A skill writes only what its row allows (capability: file-write). Everything els
 | `rpi-init`, new project | Only in an empty repository: the guidance file, the architecture document, the project shell and its task-runner entries, the health-check tests, the completed `project-shell` feature, and the agent entry files the user named |
 | `rpi-refine` | Its feature's brief (and the feature folder, when new) |
 | `rpi-plan` | Its feature's plan and `.feature` file |
-| `rpi-implement` | Application code and tests; its plan's status, implementation progress, and implementation changes; its `.feature` file (with the change tag below); completed features' `.feature` files where the approved plan lists the change; the archive move after confirmation |
+| `rpi-implement` | Application code and tests; its plan's status, implementation progress, and implementation changes; its `.feature` file (with the change tag below); completed features' `.feature` files, in their specification location, where the approved plan lists the change; the archive move after confirmation |
 | `rpi-grill-me` | Nothing |
 
 The brief is read-only for every skill except `rpi-refine`.
@@ -96,7 +100,7 @@ The brief is read-only for every skill except `rpi-refine`.
 - **Predecessor gate:** `rpi-plan` needs a brief and `rpi-implement` needs a plan. When the predecessor is missing, the skill changes nothing and tells the user which skill to run: "Run rpi-refine for <slug> first." or "Run rpi-plan for <slug> first." It does not run the other phase itself.
 - **Approval gate:** `rpi-implement` changes nothing in the application or tests unless the plan status is `approved`, `in-progress`, or `verified` (resumed work). For any other status, it summarizes the plan and asks for explicit approval; only an explicit yes allows it to set `approved` and continue.
 - **Verification gate:** a plan becomes `verified` only when every scenario's test or eval case passes and every command in `verification.full`, plus the `command` of every test kind the feature uses, passed in this session. A check that was not run is reported as not run.
-- **Archive gate:** after verification, ask whether to move the feature folder to `<features.completed>/<slug>/`. Move it only after explicit confirmation, meaning a reply that asks for this feature to be archived; a generic reply such as "use the recommended option" is not confirmation. Otherwise leave it in place and report that archiving is pending.
+- **Archive gate:** after verification, ask whether to move the feature folder to `<features.completed>/<slug>/` (with its `.feature` files going to `<features.specifications>/<slug>/` when `features.specifications` is set). Move it only after explicit confirmation, meaning a reply that asks for this feature to be archived; a generic reply such as "use the recommended option" is not confirmation. Otherwise leave it in place and report that archiving is pending.
 - **Hand-off:** each phase ends by naming the next skill for a fresh session (capability: session-handoff). No skill continues into the next phase.
 
 ## Implementation progress
@@ -127,7 +131,7 @@ When the user asks for the light path and a criterion fails, say "This change do
 
 ## Changes to completed features
 
-Completed features are the living behavior specification. A later feature may change a completed feature's scenarios only when its approved plan lists that change. `rpi-implement` then edits the completed `.feature` file, tags each changed scenario `@amended-by-<slug>`, and adds a Gherkin comment above it that states what changed and why. A needed change that the plan does not list is recorded under "Implementation changes from approved plan" and applied only after the user decides.
+Completed features are the living behavior specification, and their scenarios are in their specification location. A later feature may change a completed feature's scenarios only when its approved plan lists that change. `rpi-implement` then edits the completed `.feature` file in that location, tags each changed scenario `@amended-by-<slug>`, and adds a Gherkin comment above it that states what changed and why. A needed change that the plan does not list is recorded under "Implementation changes from approved plan" and applied only after the user decides.
 
 ## Implementation changes from approved plan
 
