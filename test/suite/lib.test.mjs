@@ -1,10 +1,10 @@
 // Supporting unit tests for the shared library (not linked to a scenario).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseYaml } from '../lib/yaml.mjs';
-import { parseFrontmatter, setFrontmatter } from '../lib/frontmatter.mjs';
-import { extractConfig } from '../lib/config.mjs';
-import { tokenize } from '../lib/command.mjs';
+import { parseYaml } from '../../skills/rpi-workflow/scripts/lib/yaml.mjs';
+import { parseFrontmatter, setFrontmatter } from '../../skills/rpi-workflow/scripts/lib/frontmatter.mjs';
+import { extractConfig } from '../../skills/rpi-workflow/scripts/lib/config.mjs';
+import { tokenize } from '../evals/lib/command.mjs';
 
 test('YAML subset: nested maps, flow collections, sequences, quoting, comments', () => {
   const data = parseYaml(`rpi:

@@ -1,7 +1,7 @@
 # Verification tags (all verification is automated; there are no manual checks):
-#   @static - verified by node:test tests of the suite scripts (task check:skills).
+#   @static - verified by node:test tests in test/suite/ (task check).
 #   @agent  - agent behavior; verified by the agent eval runner (task test:agents), which runs the
-#             matching case in rpi-workflow/evals/cases/ non-interactively in every configured
+#             matching case in test/evals/cases/ non-interactively in every configured
 #             harness inside a temporary fixture repository and asserts files and transcript output.
 #             The case title equals the scenario name (outline examples append " - <example>").
 
@@ -106,6 +106,12 @@ Feature: Portable RPI workflow skill suite
       Then the destination's suite folders are identical to the source suite folders
       And files removed from the source suite are removed from the destination suite folders
       And files outside the destination's suite folders are unchanged
+
+    @static
+    Scenario: The installed suite holds only what applications need
+      Given the suite folders in the source repository
+      Then they contain no eval cases, fixtures, eval runner, or tests of the suite
+      And an installed copy contains no such files
 
     @static @changed-from-approved
     Scenario: An installed suite passes the check without repository configuration

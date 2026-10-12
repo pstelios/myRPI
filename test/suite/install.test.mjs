@@ -21,6 +21,28 @@ function listFiles(dir) {
 }
 
 describe('Rule: The suite is reusable from a separate repository', () => {
+  test('The installed suite holds only what applications need', () => {
+    // Nothing that only myRPI itself needs may sit in the suite folders.
+    const forbidden = (file) => /(^|\/)(evals|fixtures|test)(\/|$)|run-evals|check-coverage|\.test\.mjs$|stub-harness/.test(file);
+    for (const skill of SUITE_SKILLS) {
+      assert.deepEqual(listFiles(join(suiteDir, skill)).filter(forbidden), [], `${skill} in the source repository`);
+    }
+
+    // An older copy that still has such files loses them when the suite is installed.
+    const dest = tempDir('rpi-install-');
+    writeTree(dest, {
+      'skills/rpi-workflow/evals/cases/A01-old.json': '{}\n',
+      'skills/rpi-workflow/scripts/run-evals.mjs': '// old\n',
+      'skills/rpi-workflow/scripts/test/helpers.mjs': '// old\n',
+    });
+    const run = runNode(installScript(), ['--to', join(dest, 'skills')]);
+    assert.equal(run.code, 0, run.output);
+    for (const skill of SUITE_SKILLS) {
+      assert.deepEqual(listFiles(join(dest, 'skills', skill)).filter(forbidden), [], `${skill} in the installed copy`);
+    }
+    assert.ok(!existsSync(join(dest, 'skills', 'rpi-workflow', 'evals')), 'old eval folder is gone');
+  });
+
   test('Installing the suite produces an identical copy', () => {
     const dest = tempDir('rpi-install-');
     writeTree(dest, {

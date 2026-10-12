@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its implementation plan"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.1.0
+  version: 2.0.0
 ---
 
 # Implement an Approved Feature
@@ -54,7 +54,7 @@ Check these in order and report every finding before changing anything:
 
 For each remaining row, in plan order:
 
-1. Write or update the automated test named after the scenario, asserting the observable outcome of each `Given`/`When`/`Then`, including failure and edge behavior. Agent-behavior scenarios get eval cases run by the eval runner.
+1. Write or update the automated test named after the scenario, asserting the observable outcome of each `Given`/`When`/`Then`, including failure and edge behavior. Agent-behavior scenarios get eval cases run with the repository's configured eval command.
 2. Run it with the configured focused command and confirm that it fails for the missing behavior (or record why a failing-first result is not meaningful). Set the row to `failing`.
 3. Implement the behavior following the plan's steps and file table, using the existing architecture and patterns.
 4. Run the focused test until it passes. Set the row to `passing` immediately, so an interruption leaves an accurate record.

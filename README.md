@@ -9,7 +9,7 @@ A portable, harness-neutral skill suite for a requirement-driven feature workflo
 | `rpi-plan` | Write Gherkin scenarios and an implementation plan from a confirmed brief, and get it approved |
 | `rpi-implement` | Implement an approved plan test-first, keep progress resumable, verify, and archive on confirmation |
 | `rpi-grill-me` | The interview protocol (also usable on its own to stress-test a decision) |
-| `rpi-workflow` | Shared reference: lifecycle, capability vocabulary, configuration schema, templates, eval cases, and scripts |
+| `rpi-workflow` | Shared reference: lifecycle, capability vocabulary, configuration schema, templates, and scripts |
 
 The current version is in each skill's `metadata.version` and in [CHANGELOG.md](CHANGELOG.md).
 
@@ -34,9 +34,16 @@ It checks the suite (names, shared version, no harness-specific or project-speci
 
 ## Agent evals
 
-`rpi-workflow/evals/` contains automated agent eval cases with fixture repositories. `rpi-workflow/scripts/run-evals.mjs` runs each case non-interactively in every harness configured under `agent_evals` in the project's configuration, in temporary repositories outside the project, and writes a pass/fail report. See [examples/agent-evals.yaml](examples/agent-evals.yaml) for harness settings. Evals need network access, logged-in harness CLIs, and paid model usage.
+The suite is verified by automated agent evals. The cases, fixture repositories, and runner are myRPI's own tests: they live in `test/evals/` and are not installed into applications. See [test/README.md](test/README.md).
 
 ## This repository
+
+```text
+skills/     the suite; the only part that is installed into applications
+test/       myRPI's own tests: test/suite (node:test), test/evals (agent eval cases, fixtures, runner)
+docs/       the suite's behavior specification and the agent eval results
+examples/   examples for applications
+```
 
 This is the **only editing source** of the suite. Applications never edit their copies; they pull the current version from here, from the application side:
 
@@ -46,4 +53,4 @@ node <myRPI>/skills/rpi-workflow/scripts/install-suite.mjs --to <app skill locat
 
 The installer mirrors every `rpi-*` folder (it overwrites them and deletes files that no longer exist here, leaving other skills alone) and then checks the installed suite and the application's configuration. Wrap it in a task in each application, for example WordIn6's `task rpi:update`.
 
-Agent evals run from an application that has the suite installed and `agent_evals` configured (WordIn6: `task test:agents`). Run them before releasing a new suite version and after harness updates; a pass stays valid only while the suite, the cases, and the harness versions are unchanged. Bump `metadata.version` in all six skills and add a changelog entry for every release.
+Agent evals run from this repository (`task test:agents`). Run them before releasing a new suite version and after harness updates; a pass stays valid only while the suite, the cases, and the harness versions are unchanged. Bump `metadata.version` in all six skills and add a changelog entry for every release.

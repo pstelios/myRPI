@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its refinement brief"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 1.1.0
+  version: 2.0.0
 ---
 
 # Plan a Feature

@@ -61,7 +61,7 @@ status: draft            # draft | blocked | ready | approved | in-progress | ve
 created_at: "YYYY-MM-DDTHH:MM:SSZ"
 description: "One-sentence implementation goal."
 brief_revision: 1        # the brief revision this plan is based on
-suite_version: 1.1.0     # the suite version that wrote the plan
+suite_version: 2.0.0     # the suite version that wrote the plan
 base_commit: <optional commit id the plan was written against>
 ---
 ```

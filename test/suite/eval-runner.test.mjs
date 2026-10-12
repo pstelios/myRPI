@@ -2,10 +2,10 @@
 import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, sep } from 'node:path';
-import { cleanup, copySuite, evalScript, guidance, read, runNode, stubHarness, tempDir, writeTree } from './helpers.mjs';
+import { cleanup, evalScript, guidance, read, runNode, stubHarness, tempDir, writeTree } from './helpers.mjs';
 
 after(cleanup);
 
@@ -38,16 +38,13 @@ const STUB_CASE = {
   ],
 };
 
-// A temporary project: guidance with the given harnesses and a suite whose only case is STUB_CASE.
+// A temporary project: guidance with the given harnesses, and a separate folder whose only case is STUB_CASE.
 function project(harnesses, options) {
   const root = tempDir('rpi-project-');
   writeTree(root, { 'AGENTS.md': guidance({ extraYaml: harnesses ? harnessYaml(harnesses, options) : '' }) });
-  const skills = copySuite(root, '.agents/skills');
-  const cases = join(skills, 'rpi-workflow', 'evals', 'cases');
-  rmSync(cases, { recursive: true, force: true });
-  mkdirSync(cases, { recursive: true });
+  const cases = join(tempDir('rpi-cases-'), 'cases');
   writeTree(cases, { 'A01-stub-case.json': JSON.stringify(STUB_CASE, null, 2) });
-  return { root, skills };
+  return { root, cases };
 }
 
 function treeHash(dir) {
@@ -70,12 +67,12 @@ const isInside = (child, parent) => {
 
 describe('Rule: Agent behavior is verified automatically', () => {
   test('Eval runner reports results per case and harness', () => {
-    const { root, skills } = project([
+    const { root, cases } = project([
       { name: 'stub-good', mode: 'good' },
       { name: 'stub-bad', mode: 'bad' },
     ]);
     const report = join(tempDir('rpi-report-'), 'agents.md');
-    const run = runNode(evalScript(skills), ['--repo', root, '--report', report]);
+    const run = runNode(evalScript(), ['--repo', root, '--cases', cases, '--report', report]);
     assert.equal(run.code, 1, `runner exits with a failure:\n${run.output}`);
 
     const text = read(report);
@@ -89,12 +86,12 @@ describe('Rule: Agent behavior is verified automatically', () => {
     const bad = cells[header.split('|').map((c) => c.trim()).indexOf('stub-bad')];
     assert.equal(good, 'pass');
     assert.match(bad, /^FAIL: file-exists result\.txt/);
-    assert.match(text, /Suite version: 1\.1\.0/);
+    assert.match(text, /Suite version: 2\.0\.0/);
   });
 
   test('Eval runner fails when no harness is configured', () => {
-    const { root, skills } = project(null);
-    const run = runNode(evalScript(skills), ['--repo', root]);
+    const { root, cases } = project(null);
+    const run = runNode(evalScript(), ['--repo', root, '--cases', cases]);
     assert.equal(run.code, 1);
     assert.match(run.output, /no agent eval harness is configured/i);
     assert.match(run.output, /agent_evals\.harnesses/);
@@ -102,10 +99,10 @@ describe('Rule: Agent behavior is verified automatically', () => {
 
   test('Eval runner isolates fixtures outside the repository', () => {
     const log = join(tempDir('rpi-log-'), 'calls.jsonl');
-    const { root, skills } = project([{ name: 'stub-good', mode: 'good', log }]);
+    const { root, cases } = project([{ name: 'stub-good', mode: 'good', log }]);
     const before = treeHash(root);
     const report = join(tempDir('rpi-report-'), 'agents.md');
-    const run = runNode(evalScript(skills), ['--repo', root, '--report', report]);
+    const run = runNode(evalScript(), ['--repo', root, '--cases', cases, '--report', report]);
     assert.equal(run.code, 0, run.output);
 
     const calls = read(log).trim().split('\n').map((l) => JSON.parse(l));
@@ -120,7 +117,7 @@ describe('Rule: Agent behavior is verified automatically', () => {
     const inside = join(root, 'tmp-inside');
     mkdirSync(inside);
     const env = { ...process.env, TMPDIR: inside, TMP: inside, TEMP: inside };
-    const refused = runNode(evalScript(skills), ['--repo', root, '--report', report], { env });
+    const refused = runNode(evalScript(), ['--repo', root, '--cases', cases, '--report', report], { env });
     assert.equal(refused.code, 1, refused.output);
     assert.match(refused.output, /outside the project/i);
   });

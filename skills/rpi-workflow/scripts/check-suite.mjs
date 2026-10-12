@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Static checks for the rpi skill suite and, in repository mode, for the repository that uses it.
-// Usage: node check-suite.mjs [--repo <root>] [--suite <skills-dir>] [--suite-only] [--feature <file.feature>]
+// Usage: node check-suite.mjs [--repo <root>] [--suite <skills-dir>] [--suite-only]
 // Prints one line per finding: <file>:<line> <rule-id> <message>. Exits 1 when there are findings.
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -8,7 +8,6 @@ import { pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './lib/frontmatter.mjs';
 import { GUIDANCE_FILE, SECTION_HEADING, configValues, loadConfig, validateConfig } from './lib/config.mjs';
 import { LEGACY_SKILLS, SUITE_SKILLS, isInside, thisSuiteDir, toPosix, walk } from './lib/files.mjs';
-import { agentScenarioTitles } from './lib/gherkin.mjs';
 
 export const REPOSITORY_RULES = ['app-values', 'config', 'no-restated-lifecycle', 'single-copy'];
 export const KNOWN_SKILL_LOCATIONS = ['.claude/skills', '.agents/skills', '.github/skills'];
@@ -32,25 +31,25 @@ const lineOf = (text, index) => text.slice(0, index).split('\n').length;
 // Generic single lowercase words (such as "test") cannot be matched reliably against prose.
 const isSpecificValue = (v) => /[\s/.:\\]|[A-Z]/.test(v);
 
-function suiteFiles(suiteDir, { excludeEvals = false } = {}) {
+function suiteFiles(suiteDir) {
   const files = [];
   for (const skill of SUITE_SKILLS) {
     const dir = join(suiteDir, skill);
-    for (const rel of walk(dir, { skip: (r) => /(^|\/)scripts$/.test(r) || (excludeEvals && /(^|\/)evals$/.test(r)) })) {
+    for (const rel of walk(dir, { skip: (r) => /(^|\/)scripts$/.test(r) })) {
       files.push(join(dir, rel));
     }
   }
   return files;
 }
 
-export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly = false, featureFile = null, base = null } = {}) {
+export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly = false, base = null } = {}) {
   suiteDir = resolve(suiteDir);
   const root = suiteOnly ? null : resolve(repoDir ?? process.cwd());
   const baseDir = resolve(base ?? root ?? process.cwd());
   const show = (p) => (isInside(p, baseDir) ? toPosix(relative(baseDir, p)) : toPosix(p));
   const findings = [];
   const add = (file, line, rule, message) => findings.push({ file: show(file), line, rule, message });
-  const result = { findings, skipped: [], scanned: { harnessTerms: 0, appValues: 0, agentScenarios: 0 }, capabilities: { referenced: [], defined: [] }, config: null, configSection: null };
+  const result = { findings, skipped: [], scanned: { harnessTerms: 0, appValues: 0 }, capabilities: { referenced: [], defined: [] }, config: null, configSection: null };
 
   // suite-members
   const members = existsSync(suiteDir)
@@ -142,7 +141,7 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     result.scanned.appValues = values.length;
     if (values.length) {
       const patterns = values.map((v) => [v, new RegExp(`(?<![A-Za-z0-9_])${escapeRegExp(v)}(?![A-Za-z0-9_])`, 'i')]);
-      for (const file of suiteFiles(suiteDir, { excludeEvals: true })) {
+      for (const file of suiteFiles(suiteDir)) {
         readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
           for (const [value, pattern] of patterns) if (pattern.test(line)) add(file, i + 1, 'app-values', `configured value "${value}"`);
         });
@@ -183,61 +182,17 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     }
   }
 
-  // eval-coverage
-  if (featureFile) {
-    const feature = resolve(featureFile);
-    if (!existsSync(feature)) {
-      add(feature, 1, 'eval-coverage', 'feature file not found');
-    } else {
-      const scenarios = agentScenarioTitles(readFileSync(feature, 'utf8'));
-      result.scanned.agentScenarios = scenarios.length;
-      const casesDir = join(suiteDir, 'rpi-workflow', 'evals', 'cases');
-      const cases = [];
-      for (const name of existsSync(casesDir) ? readdirSync(casesDir).filter((n) => n.endsWith('.json')).sort() : []) {
-        const file = join(casesDir, name);
-        try {
-          const data = JSON.parse(readFileSync(file, 'utf8'));
-          cases.push({ file, title: data.title });
-          for (const problem of validateCase(data)) add(file, 1, 'eval-coverage', problem);
-        } catch (err) {
-          add(file, 1, 'eval-coverage', `invalid JSON: ${err.message}`);
-        }
-      }
-      for (const s of scenarios) {
-        const count = cases.filter((c) => c.title === s.title).length;
-        if (count === 0) add(feature, s.line, 'eval-coverage', `"${s.title}" has no eval case`);
-        else if (count > 1) add(feature, s.line, 'eval-coverage', `"${s.title}" has ${count} eval cases`);
-      }
-      const titles = new Set(scenarios.map((s) => s.title));
-      for (const c of cases) if (!titles.has(c.title)) add(c.file, 1, 'eval-coverage', `"${c.title}" has no matching @agent scenario`);
-    }
-  } else {
-    result.skipped.push('eval-coverage');
-  }
-
   findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
   return result;
 }
 
-// Structural problems of an eval case file.
-export function validateCase(data) {
-  const problems = [];
-  if (!/^A\d{2,}$/.test(String(data.id ?? ''))) problems.push('case id must look like A01');
-  if (typeof data.title !== 'string' || !data.title) problems.push('case has no title');
-  if (!Array.isArray(data.turns) || !data.turns.length) problems.push('case has no turns');
-  if (!Array.isArray(data.assert)) problems.push('case has no assert list');
-  if (!Array.isArray(data.disable) || !data.disable.includes('structured-question')) problems.push('case must disable structured-question');
-  return problems;
-}
-
 function parseArgs(argv) {
-  const args = { repo: null, suite: null, suiteOnly: false, feature: null };
+  const args = { repo: null, suite: null, suiteOnly: false };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a === '--repo') args.repo = argv[++i];
     else if (a === '--suite') args.suite = argv[++i];
     else if (a === '--suite-only') args.suiteOnly = true;
-    else if (a === '--feature') args.feature = argv[++i];
     else throw new Error(`unknown argument ${a}`);
   }
   return args;
@@ -246,9 +201,9 @@ function parseArgs(argv) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   let args;
   try { args = parseArgs(process.argv.slice(2)); } catch (err) { console.error(err.message); process.exit(2); }
-  const result = checkSuite({ suiteDir: args.suite ?? thisSuiteDir, repoDir: args.repo, suiteOnly: args.suiteOnly, featureFile: args.feature });
+  const result = checkSuite({ suiteDir: args.suite ?? thisSuiteDir, repoDir: args.repo, suiteOnly: args.suiteOnly });
   for (const f of result.findings) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
-  for (const rule of result.skipped) console.log(`skipped ${rule} (${rule === 'eval-coverage' ? 'no --feature given' : 'suite-only mode'})`);
+  for (const rule of result.skipped) console.log(`skipped ${rule} (suite-only mode)`);
   const summary = `rpi suite ${result.version ?? '?'}: ${result.findings.length} finding(s)`;
   if (result.findings.length) { console.log(summary); process.exit(1); }
   console.log(`${summary}; all checks passed`);

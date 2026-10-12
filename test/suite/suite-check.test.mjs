@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import {
   SUITE_SKILLS, checkScript, cleanup, copySuite, guidance, read, repoDir, repoSkip, runNode, suiteDir, tempDir, writeTree,
 } from './helpers.mjs';
-import { checkSuite } from '../check-suite.mjs';
-import { parseFrontmatter } from '../lib/frontmatter.mjs';
+import { checkSuite } from '../../skills/rpi-workflow/scripts/check-suite.mjs';
+import { parseFrontmatter } from '../../skills/rpi-workflow/scripts/lib/frontmatter.mjs';
 
 after(cleanup);
 

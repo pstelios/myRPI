@@ -6,10 +6,12 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const scriptsDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export const workflowDir = resolve(scriptsDir, '..');
-export const suiteDir = resolve(workflowDir, '..');
-export const stubHarness = join(scriptsDir, 'test', 'stub-harness.mjs');
+// myRPI's own tests live in test/; the suite that applications install lives in skills/.
+const here = dirname(fileURLToPath(import.meta.url));
+export const projectDir = resolve(here, '..', '..');
+export const suiteDir = join(projectDir, 'skills');
+export const evalsDir = join(projectDir, 'test', 'evals');
+export const stubHarness = join(here, 'stub-harness.mjs');
 
 export const SUITE_SKILLS = ['rpi-workflow', 'rpi-init', 'rpi-refine', 'rpi-plan', 'rpi-implement', 'rpi-grill-me'];
 
@@ -59,8 +61,13 @@ export function checkScript(skillsDir = suiteDir) {
   return join(skillsDir, 'rpi-workflow', 'scripts', 'check-suite.mjs');
 }
 
-export function evalScript(skillsDir = suiteDir) {
-  return join(skillsDir, 'rpi-workflow', 'scripts', 'run-evals.mjs');
+// The eval runner and the coverage check are myRPI tools, not part of the installed suite.
+export function evalScript() {
+  return join(evalsDir, 'run-evals.mjs');
+}
+
+export function coverageScript() {
+  return join(evalsDir, 'check-coverage.mjs');
 }
 
 export function installScript(skillsDir = suiteDir) {

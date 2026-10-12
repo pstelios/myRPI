@@ -1,22 +1,27 @@
 #!/usr/bin/env node
 // Agent eval runner. Runs each eval case non-interactively in every configured harness, inside a
 // fresh temporary fixture repository outside the project, then checks the case's assertions.
+// Part of myRPI's own tests: it is not installed into applications.
 // Usage: node run-evals.mjs [--repo <root>] [--case <id|title>]... [--harness <name>]...
 //                           [--report <file>] [--jobs <n>] [--keep] [--fresh] [--list]
+//                           [--cases <dir>] [--fixtures <dir>] [--suite <skills-dir>]
+// By default the cases and fixtures sit next to this script and the suite under test is the skills folder of this repository.
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { loadConfig } from './lib/config.mjs';
-import { parseFrontmatter, setFrontmatter } from './lib/frontmatter.mjs';
-import { hashFile, isInside, mirrorSuite, thisSuiteDir, toPosix, walk } from './lib/files.mjs';
+import { fileURLToPath } from 'node:url';
+import { loadConfig } from '../../skills/rpi-workflow/scripts/lib/config.mjs';
+import { parseFrontmatter, setFrontmatter } from '../../skills/rpi-workflow/scripts/lib/frontmatter.mjs';
+import { hashFile, isInside, mirrorSuite, thisSuiteDir, toPosix, walk } from '../../skills/rpi-workflow/scripts/lib/files.mjs';
 import { run, runShell, substitute, tokenize } from './lib/command.mjs';
 
+const here = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SKILLS_DIR = '.agents/skills';
 const DEFAULT_TIMEOUT_S = 900;
 
 function parseArgs(argv) {
-  const args = { repo: process.cwd(), cases: [], harnesses: [], report: null, jobs: 3, keep: false, fresh: false, list: false };
+  const args = { repo: process.cwd(), cases: [], harnesses: [], report: null, jobs: 3, keep: false, fresh: false, list: false, casesDir: join(here, 'cases'), fixturesDir: join(here, 'fixtures'), suite: null };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a === '--repo') args.repo = argv[++i];
@@ -27,6 +32,9 @@ function parseArgs(argv) {
     else if (a === '--keep') args.keep = true;
     else if (a === '--fresh') args.fresh = true;
     else if (a === '--list') args.list = true;
+    else if (a === '--cases') args.casesDir = resolve(argv[++i]);
+    else if (a === '--fixtures') args.fixturesDir = resolve(argv[++i]);
+    else if (a === '--suite') args.suite = resolve(argv[++i]);
     else throw new Error(`unknown argument ${a}`);
   }
   return args;
@@ -39,14 +47,12 @@ function die(message) {
 
 // ---------- cases and fixtures ----------
 
-function loadCases(suiteDir) {
-  const dir = join(suiteDir, 'rpi-workflow', 'evals', 'cases');
+function loadCases(dir) {
   if (!existsSync(dir)) return [];
   return readdirSync(dir).filter((n) => n.endsWith('.json')).sort().map((n) => ({ file: n, ...JSON.parse(readFileSync(join(dir, n), 'utf8')) }));
 }
 
-function buildFixture(dir, testCase, suiteDir, skillsDir) {
-  const fixtures = join(suiteDir, 'rpi-workflow', 'evals', 'fixtures');
+function buildFixture(dir, testCase, suiteDir, skillsDir, fixtures) {
   const fx = testCase.fixture ?? {};
   for (const seed of fx.seeds ?? []) {
     const src = join(fixtures, seed);
@@ -283,7 +289,7 @@ async function runCase(testCase, harness, opts) {
   const transcript = [`# ${testCase.id} ${testCase.title} — ${harness.name}`, '', `Fixture: ${dir}`, ''];
   const result = { id: testCase.id, title: testCase.title, harness: harness.name, ok: false, detail: '', turns: 0, seconds: 0 };
   try {
-    buildFixture(dir, testCase, opts.suiteDir, opts.skillsDir);
+    buildFixture(dir, testCase, opts.suiteDir, opts.skillsDir, opts.fixturesDir);
     const gitState = await initRepo(dir);
     const ctx = { dir, skillsDir: opts.skillsDir, initial: snapshot(dir), outputs: [], git: gitState, ignore: opts.ignore };
 
@@ -380,19 +386,19 @@ async function main() {
   let args;
   try { args = parseArgs(process.argv.slice(2)); } catch (err) { die(err.message); }
   const repo = resolve(args.repo);
-  const suiteDir = thisSuiteDir;
+  const suiteDir = args.suite ?? thisSuiteDir;
   const { section } = loadConfig(repo);
   const evals = section.config?.agent_evals;
   const harnesses = Array.isArray(evals?.harnesses) ? evals.harnesses : [];
   if (!harnesses.length) {
-    die('No agent eval harness is configured. Add agent_evals.harnesses to the "Feature workflow" section of the guidance file (see rpi-workflow/references/configuration.md).');
+    die('No agent eval harness is configured. Add agent_evals.harnesses to the "Feature workflow" section of the guidance file (see test/README.md).');
   }
   for (const h of harnesses) if (!h.name || !h.start || !h.resume) die(`Harness ${h.name ?? '(unnamed)'} needs name, start, and resume.`);
 
   const tmp = resolve(tmpdir());
   if (isInside(tmp, repo)) die(`The temporary location ${tmp} is inside the project; fixtures must be created outside the project.`);
 
-  let cases = loadCases(suiteDir);
+  let cases = loadCases(args.casesDir);
   if (args.list) { for (const c of cases) console.log(`${c.id}  ${c.title}`); return 0; }
   if (args.cases.length) cases = cases.filter((c) => args.cases.some((sel) => c.id === sel || c.title.toLowerCase().includes(sel.toLowerCase())));
   const selected = args.harnesses.length ? harnesses.filter((h) => args.harnesses.includes(h.name)) : harnesses;
@@ -409,7 +415,7 @@ async function main() {
     versions[h.name] = r.stdout.trim().split('\n')[0] || undefined;
   }
   const previous = args.fresh ? {} : readPrevious(reportPath);
-  const opts = { repo, suiteDir, tmp, runDir, keep: args.keep, skillsDir: evals.skills_dir ?? DEFAULT_SKILLS_DIR, ignore: evals.ignore ?? [] };
+  const opts = { repo, suiteDir, fixturesDir: args.fixturesDir, tmp, runDir, keep: args.keep, skillsDir: evals.skills_dir ?? DEFAULT_SKILLS_DIR, ignore: evals.ignore ?? [] };
 
   const jobs = [];
   for (const c of cases) for (const h of selected) jobs.push([c, h]);
@@ -429,7 +435,7 @@ async function main() {
   const merged = { ...previous };
   const date = new Date().toISOString();
   for (const r of results) merged[`${r.id}|${r.harness}`] = { ok: r.ok, detail: r.detail, date };
-  const allCases = loadCases(suiteDir);
+  const allCases = loadCases(args.casesDir);
   const known = new Set(allCases.map((c) => c.id));
   for (const key of Object.keys(merged)) if (!known.has(key.split('|')[0])) delete merged[key];
   const harnessNames = harnesses.map((h) => h.name).filter((n) => selected.some((s) => s.name === n) || Object.keys(merged).some((k) => k.endsWith(`|${n}`)));

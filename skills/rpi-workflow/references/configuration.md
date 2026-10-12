@@ -23,9 +23,6 @@ The suite's scripts parse a documented YAML subset: block maps and sequences, fl
 | `verification.full` | yes | Commands that must all pass before any feature is verified. |
 | `test_mapping[]` | yes | One entry per test kind: `kind`, `tool`, `location` (where those tests live), and `command` (runs all tests of that kind). A feature's verification also runs the `command` of every kind its scenarios use. |
 | `git.commit`, `git.push`, `git.branch` | yes | `never`, `when-asked` (only when the user explicitly asks in the session), or `allowed`. |
-| `agent_evals` | only where agent evals run | Settings for the agent eval runner; see below. |
-
-The test kind `agent-behavior` is recognized by the suite: its tests are eval cases run by the eval runner (`rpi-workflow/scripts/run-evals.mjs`).
 
 ## Template
 
@@ -33,7 +30,7 @@ Values in angle brackets are placeholders. Leave out `specifications` when the s
 
 ```yaml
 rpi:
-  suite_version: 1.1.0
+  suite_version: 2.0.0
   features: { working: <working-folder>, completed: <completed-folder>, specifications: <specification-folder> }
   architecture: <architecture-document-or-none>
   verification:
@@ -46,26 +43,6 @@ rpi:
   git: { commit: when-asked, push: when-asked, branch: when-asked }
 ```
 
-## Agent eval settings
-
-Only repositories that run the suite's agent evals need `agent_evals`. Harness command lines live only here, never in the suite.
-
-| Key | Meaning |
-|---|---|
-| `report` | Repository path of the generated results report. |
-| `skills_dir` | Skill location to copy the suite into inside each fixture repository. |
-| `ignore[]` | Paths the runner ignores when it checks a fixture for changes (files an environment writes on its own). |
-| `harnesses[].name` | Short name used in the report and with `--harness`. |
-| `harnesses[].start` | Command template that starts a non-interactive session with one prompt. Placeholders: `{prompt}`, and optionally `{session}` (the runner then assigns a new session id). |
-| `harnesses[].resume` | Command template that sends the next prompt to the same session (`{prompt}`, `{session}`). |
-| `harnesses[].session` | Optional regular expression whose first group extracts the session id from `start` output, when the runner cannot assign one. |
-| `harnesses[].disable.<capability>` | Extra arguments that switch off a capability. Every case disables `structured-question`, so each harness must define it. |
-| `harnesses[].env_unset[]` | Environment variable names (with `*` wildcards) removed before starting the harness. |
-| `harnesses[].version` | Optional command whose first output line is recorded in the report. |
-| `harnesses[].timeout_s` | Per-turn timeout in seconds (default 900). |
-
-The runner creates every fixture in the operating system's temporary folder and refuses to run when that folder is inside the project. The harness permission arguments therefore apply only to disposable fixtures.
-
 ## Values that must not appear in suite text
 
-The suite check (`rpi-workflow/scripts/check-suite.mjs`) fails when a configured path, tool, or command appears in the suite's skill text (its scripts and eval data are not skill text). Values that are a single lowercase word are too generic to match reliably and are not checked; `none` and `<…>` placeholders are ignored.
+The suite check (`rpi-workflow/scripts/check-suite.mjs`) fails when a configured path, tool, or command appears in the suite's skill text (its scripts are not skill text). Values that are a single lowercase word are too generic to match reliably and are not checked; `none` and `<…>` placeholders are ignored.
