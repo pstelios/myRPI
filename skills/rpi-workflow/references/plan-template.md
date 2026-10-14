@@ -12,7 +12,8 @@ Every plan has these sections, in this order. On the light track, keep each one 
 | `## Requirements and acceptance coverage` | Table: each acceptance item → scenario(s) → test kind. |
 | `## Gherkin scenarios` | The `.feature` file, its scenario count, and how test and case names relate to scenario names. |
 | `## Technical design` | Decisions with status (confirmed, user decision, or recommendation) and rationale; responsibilities and data flow; contracts at module or service boundaries (interfaces, request and response shapes, events, errors), not full code-level signatures; security and privacy; data and persistence; network and failure behavior; state and concurrency; accessibility, performance, and deployment where relevant. Mark topics that do not apply as N/A instead of padding. |
-| `## Architecture review` | Points checked against the architecture document (or `none` configured), the outcome, and the user's decision. |
+| `## Architecture review` | Points checked against the architecture document (or `none` configured), the outcome, and the user's decision. For an approved change, the change summary the user confirmed: each affected section, what it says now, what it will say, and why. |
+| `## Readme review` | Points checked against the project readme (or "no readme"), the outcome, and the user's decision. For an approved change, the change summary the user confirmed, in the same form. |
 | `## Risk register` | Table: risk, impact, likelihood, mitigation. |
 | `## Implementation steps` | Ordered steps. Writing or updating the scenarios comes first; scenario tests come before the behavior they verify. |
 | `## Expected changes by file` | Table: explicit path, `new`/`modify`/`delete`, purpose. Include scenarios, code, tests, configuration, documentation, and completed features' `.feature` files the plan amends. |
@@ -48,6 +49,7 @@ suite_version: <suite version>
 ## Gherkin scenarios
 ## Technical design
 ## Architecture review
+## Readme review
 ## Risk register
 ## Implementation steps
 ## Expected changes by file

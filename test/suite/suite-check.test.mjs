@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import {
   SUITE_SKILLS, checkScript, cleanup, copySuite, guidance, read, repoDir, repoSkip, runNode, suiteDir, tempDir, writeTree,
 } from './helpers.mjs';
-import { checkSuite } from '../../skills/rpi-workflow/scripts/check-suite.mjs';
-import { parseFrontmatter } from '../../skills/rpi-workflow/scripts/lib/frontmatter.mjs';
+import { checkSuite } from '../../scripts/check-suite.mjs';
+import { parseFrontmatter } from '../../scripts/lib/frontmatter.mjs';
 
 after(cleanup);
 
@@ -21,7 +21,7 @@ function lineCount(path) {
 // canonical skill location. Every rule passes for it before a violation is injected.
 function tempRepo() {
   const root = tempDir();
-  writeTree(root, { 'AGENTS.md': guidance() });
+  writeTree(root, { 'AGENTS_APP.md': guidance() });
   const skills = copySuite(root, '.claude/skills');
   return { root, skills };
 }
@@ -34,7 +34,7 @@ function appendLine(file, line) {
 }
 
 function replaceLine(file, pattern, replacement) {
-  const lines = read(file).split('\n');
+  const lines = read(file).split(/\r?\n/);
   const index = lines.findIndex((l) => pattern.test(l));
   assert.notEqual(index, -1, `pattern ${pattern} not found in ${file}`);
   lines[index] = lines[index].replace(pattern, replacement);
@@ -93,11 +93,11 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
     for (const [example, rule, inject] of cases) {
       test(`Suite check reports a violation and fails - ${example}`, () => {
         const { root, skills } = tempRepo();
-        const clean = runNode(checkScript(skills), ['--repo', root]);
+        const clean = runNode(checkScript(), ['--suite', skills, '--repo', root]);
         assert.equal(clean.code, 0, `baseline passes:\n${clean.output}`);
 
         const { file, line } = inject(skills);
-        const run = runNode(checkScript(skills), ['--repo', root]);
+        const run = runNode(checkScript(), ['--suite', skills, '--repo', root]);
         assert.equal(run.code, 1, `exits with a failure:\n${run.output}`);
         const expected = `.claude/skills/${file}:${line} ${rule} `;
         assert.ok(run.stdout.split('\n').some((l) => l.startsWith(expected)), `reports "${expected}…":\n${run.output}`);
@@ -116,10 +116,10 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
 
     // A missing key is reported.
     const { root, skills } = tempRepo();
-    writeFileSync(join(root, 'AGENTS.md'), guidance().replace(/^\s+git: .*$/m, ''));
-    const run = runNode(checkScript(skills), ['--repo', root]);
+    writeFileSync(join(root, 'AGENTS_APP.md'), guidance().replace(/^\s+git: .*$/m, ''));
+    const run = runNode(checkScript(), ['--suite', skills, '--repo', root]);
     assert.equal(run.code, 1);
-    assert.match(run.stdout, /^AGENTS\.md:\d+ config .*git/m);
+    assert.match(run.stdout, /^AGENTS_APP\.md:\d+ config .*git/m);
   });
 
   test('Repository configuration may name a separate specifications folder', () => {
@@ -130,29 +130,29 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
 
     // A folder is accepted, and the configuration is parsed with it.
     const { root, skills } = tempRepo();
-    writeFileSync(join(root, 'AGENTS.md'), withSpecs('spec/living'));
-    const clean = runNode(checkScript(skills), ['--repo', root]);
+    writeFileSync(join(root, 'AGENTS_APP.md'), withSpecs('spec/living'));
+    const clean = runNode(checkScript(), ['--suite', skills, '--repo', root]);
     assert.equal(clean.code, 0, clean.output);
 
     // The folder is an application-specific value: skill text must not contain it.
     appendLine(join(skills, 'rpi-implement', 'SKILL.md'), 'Move the scenarios to spec/living when done.');
-    const leaked = runNode(checkScript(skills), ['--repo', root]);
+    const leaked = runNode(checkScript(), ['--suite', skills, '--repo', root]);
     assert.equal(leaked.code, 1);
     assert.match(leaked.stdout, /app-values .*spec\/living/);
 
     // Guidance outside the configuration section does not name it either.
     const other = tempRepo();
-    writeFileSync(join(other.root, 'AGENTS.md'), withSpecs('spec/living').replace('A sample project.', 'Scenarios live in spec/living.'));
-    const restated = runNode(checkScript(other.skills), ['--repo', other.root]);
+    writeFileSync(join(other.root, 'AGENTS_APP.md'), withSpecs('spec/living').replace('A sample project.', 'Scenarios live in spec/living.'));
+    const restated = runNode(checkScript(), ['--suite', other.skills, '--repo', other.root]);
     assert.equal(restated.code, 1);
     assert.match(restated.stdout, /no-restated-lifecycle .*spec\/living/);
 
     // An empty value is reported as a configuration problem.
     const empty = tempRepo();
-    writeFileSync(join(empty.root, 'AGENTS.md'), withSpecs("''"));
-    const reported = runNode(checkScript(empty.skills), ['--repo', empty.root]);
+    writeFileSync(join(empty.root, 'AGENTS_APP.md'), withSpecs("''"));
+    const reported = runNode(checkScript(), ['--suite', empty.skills, '--repo', empty.root]);
     assert.equal(reported.code, 1);
-    assert.match(reported.stdout, /^AGENTS\.md:\d+ config .*features\.specifications/m);
+    assert.match(reported.stdout, /^AGENTS_APP\.md:\d+ config .*features\.specifications/m);
   });
 
   test('Repository guidance does not restate the lifecycle', { skip: repoSkip }, () => {
@@ -161,10 +161,10 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
 
     const { root, skills } = tempRepo();
     const before = '# Project guidance\n\nKeep the brief in `<feature>-info.md` until the plan has status `approved`.\n';
-    writeFileSync(join(root, 'AGENTS.md'), guidance({ before }));
-    const run = runNode(checkScript(skills), ['--repo', root]);
+    writeFileSync(join(root, 'AGENTS_APP.md'), guidance({ before }));
+    const run = runNode(checkScript(), ['--suite', skills, '--repo', root]);
     assert.equal(run.code, 1);
-    assert.match(run.stdout, /^AGENTS\.md:3 no-restated-lifecycle /m);
+    assert.match(run.stdout, /^AGENTS_APP\.md:3 no-restated-lifecycle /m);
   });
 
   test('The repository holds one copy of the suite', { skip: repoSkip }, () => {
@@ -176,7 +176,7 @@ describe('Rule: The suite is portable across harnesses and applications', () => 
     writeFileSync(join(root, '.agents', 'skills', 'rpi-plan', 'SKILL.md'), '---\nname: rpi-plan\n---\n');
     mkdirSync(join(skills, 'grill-me'), { recursive: true });
     writeFileSync(join(skills, 'grill-me', 'SKILL.md'), '---\nname: grill-me\n---\n');
-    const run = runNode(checkScript(skills), ['--repo', root]);
+    const run = runNode(checkScript(), ['--suite', skills, '--repo', root]);
     assert.equal(run.code, 1);
     assert.match(run.stdout, /^\.agents\/skills\/rpi-plan:\d+ single-copy /m);
     assert.match(run.stdout, /^\.claude\/skills\/grill-me:\d+ single-copy /m);

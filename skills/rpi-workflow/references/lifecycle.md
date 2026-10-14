@@ -1,6 +1,6 @@
 # Feature lifecycle
 
-This is the single definition of the rpi feature workflow. The workflow skills and the repository's guidance file refer to it instead of restating it. Repository-specific values (folders, documents, commands, test tools, git rules) come from the configuration described in [configuration.md](configuration.md). Environment interactions use the capabilities in [capabilities.md](capabilities.md).
+This is the single definition of the rpi feature workflow. The workflow skills and the repository's guidance files refer to it instead of restating it. Repository-specific values (folders, documents, commands, test tools, git rules) come from the configuration described in [configuration.md](configuration.md). Environment interactions use the capabilities in [capabilities.md](capabilities.md).
 
 ## Method
 
@@ -17,7 +17,7 @@ Only the tools, commands, and paths vary by repository; they come from `test_map
 
 Before anything else, `rpi-refine`, `rpi-plan`, and `rpi-implement`:
 
-1. Read the guidance file `AGENTS.md` at the repository root and its `## Feature workflow` section (capability: file-read).
+1. Read the shared guidance file `AGENTS.md`, if present, and the application guidance file `AGENTS_APP.md` with its `## Feature workflow` section, both at the repository root (capability: file-read).
 2. If the file, the section, or any required key is missing or unparsable, change nothing and stop with: "Feature workflow configuration is missing. Run rpi-init first." Name what is missing. Do not guess folders, commands, or tools.
 3. Compare the configuration's `suite_version` with the skill's `metadata.version`. If the major versions differ, warn and ask whether to continue (capability: structured-question).
 4. Read this file and [capabilities.md](capabilities.md) (capability: skill-reference).
@@ -83,14 +83,14 @@ A skill writes only what its row allows (capability: file-write). Everything els
 
 | Skill | May write |
 |---|---|
-| `rpi-init`, existing project | The guidance file's `## Feature workflow` section |
-| `rpi-init`, new project | Only in an empty repository: the guidance file, the architecture document, the project shell and its task-runner entries, the health-check tests, the completed `project-shell` feature, and the agent entry files the user named |
+| `rpi-init`, existing project | The application guidance file's `## Feature workflow` section |
+| `rpi-init`, new project | Only in an empty repository: the application guidance file, the architecture document, the project shell and its task-runner entries, the health-check tests, the completed `project-shell` feature, and the agent entry files the user named |
 | `rpi-refine` | Its feature's brief (and the feature folder, when new) |
 | `rpi-plan` | Its feature's plan and `.feature` file |
-| `rpi-implement` | Application code and tests; its plan's status, implementation progress, and implementation changes; its `.feature` file (with the change tag below); completed features' `.feature` files, in their specification location, where the approved plan lists the change; the archive move after confirmation |
+| `rpi-implement` | Application code and tests; the architecture document and the project readme where the approved plan lists the change; its plan's status, implementation progress, and implementation changes; its `.feature` file (with the change tag below); completed features' `.feature` files, in their specification location, where the approved plan lists the change; the archive move after confirmation |
 | `rpi-grill-me` | Nothing |
 
-The brief is read-only for every skill except `rpi-refine`.
+The brief is read-only for every skill except `rpi-refine`. The shared guidance file `AGENTS.md` is read-only for every skill: it is installed with the suite and replaced on every update, so repository-specific instructions go to `AGENTS_APP.md`.
 
 ## Gates
 

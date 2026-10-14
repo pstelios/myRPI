@@ -62,21 +62,21 @@ Feature: Portable RPI workflow skill suite
 
     @static
     Scenario: Repository configuration is present and complete
-      When the suite check reads the repository guidance file
+      When the suite check reads the application guidance file
       Then it finds a "Feature workflow" section with every required configuration key
       And the section references the shared lifecycle definition
 
     @static
     Scenario: Repository configuration may name a separate specifications folder
       Given the configuration sets "features.specifications" to a folder
-      When the suite check reads the repository guidance file
+      When the suite check reads the application guidance file
       Then it accepts the configuration
       And it treats the folder as an application-specific value that skill text and other guidance must not contain
       And it reports an empty value as a configuration problem
 
     @static
     Scenario: Repository guidance does not restate the lifecycle
-      When the suite check reads the repository guidance file outside the "Feature workflow" section
+      When the suite check reads the application guidance file outside the "Feature workflow" section
       Then it finds no feature artifact names, feature folder paths, or plan status names
 
     @static
@@ -110,8 +110,31 @@ Feature: Portable RPI workflow skill suite
     @static
     Scenario: The installed suite holds only what applications need
       Given the suite folders in the source repository
-      Then they contain no eval cases, fixtures, eval runner, or tests of the suite
+      Then they contain no scripts (no installer, suite check, eval runner, or tests of the suite), eval cases, or fixtures
       And an installed copy contains no such files
+
+    @static
+    Scenario: Installing into an application also installs the shared guidance
+      Given an application repository
+      When the suite is installed into it from myRPI
+      Then the application's shared guidance file is identical to myRPI's
+      And a missing application guidance file is created and an existing one is unchanged
+
+    @static
+    Scenario: A new project gets only what it needs from myRPI
+      Given a project name
+      When the user runs "task rpi:init" in myRPI with that name
+      Then a new project folder holds only the suite skills, the shared guidance file, an application guidance file, and a Taskfile
+      And the Taskfile's "rpi:update" and "rpi:check" tasks run the installer and the suite check of that myRPI checkout
+      And an invalid name or a non-empty folder is refused without changes
+
+    @static
+    Scenario: Installing refuses to replace application content in the shared guidance
+      Given an application whose shared guidance file still holds its own content
+      And that content has not moved to an application guidance file
+      When the suite is installed into it
+      Then the installer changes nothing
+      And it tells the user to move the content to the application guidance file first
 
     @static @changed-from-approved
     Scenario: An installed suite passes the check without repository configuration
@@ -173,7 +196,7 @@ Feature: Portable RPI workflow skill suite
     Scenario: rpi-init writes nothing without confirmation
       Given "rpi-init" has proposed a configuration section
       When the user declines
-      Then the repository guidance file is unchanged
+      Then the application guidance file is unchanged
 
     @agent
     Scenario: rpi-init updates an existing configuration instead of duplicating it
@@ -201,9 +224,9 @@ Feature: Portable RPI workflow skill suite
     Scenario: A confirmed new project gets guidance, architecture, and configuration
       Given the user confirmed the new-project summary
       When "rpi-init" writes the project
-      Then the repository has a guidance file with the project's name, description, and rules
+      Then the repository has an application guidance file with the project's name, description, and rules
       And it has an architecture document with the chosen stack and structure
-      And the guidance file has a "Feature workflow" section that passes the suite check
+      And the application guidance file has a "Feature workflow" section that passes the suite check
 
     @agent
     Scenario: A new project gets an empty shell with passing health checks
@@ -218,7 +241,7 @@ Feature: Portable RPI workflow skill suite
     Scenario: Agent entry files point to the guidance file
       Given the user named agent entry files during the interview
       When "rpi-init" writes the project
-      Then each named entry file exists and points to the guidance file without repeating it
+      Then each named entry file exists and points to the shared guidance file without repeating it
 
     @agent
     Scenario: New-project setup writes nothing without confirmation
@@ -314,6 +337,14 @@ Feature: Portable RPI workflow skill suite
       Given the application has no telemetry
       When "rpi-plan" writes the plan
       Then the success-metrics section states "N/A" with a reason
+
+    @agent
+    Scenario: Planning summarizes architecture and readme changes before asking
+      Given the brief needs behavior that the architecture document rules out and the readme does not describe
+      When "rpi-plan" reviews the architecture document and the readme
+      Then before asking the user about each document, it summarizes per affected section what the document says now, what it would say, and why
+      And the plan records each approved change in its review section and its file table
+      And neither document is changed during planning
 
     @agent
     Scenario: Planning hands off without starting implementation

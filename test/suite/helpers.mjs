@@ -57,8 +57,9 @@ export function runNode(script, args = [], options = {}) {
   return { code: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '', output: `${result.stdout ?? ''}${result.stderr ?? ''}` };
 }
 
-export function checkScript(skillsDir = suiteDir) {
-  return join(skillsDir, 'rpi-workflow', 'scripts', 'check-suite.mjs');
+// The suite check is a myRPI tool; pass --suite to check a copy other than skills/.
+export function checkScript() {
+  return join(projectDir, 'scripts', 'check-suite.mjs');
 }
 
 // The eval runner and the coverage check are myRPI tools, not part of the installed suite.
@@ -70,11 +71,12 @@ export function coverageScript() {
   return join(evalsDir, 'check-coverage.mjs');
 }
 
-export function installScript(skillsDir = suiteDir) {
-  return join(skillsDir, 'rpi-workflow', 'scripts', 'install-suite.mjs');
+// The installer is a myRPI tool too: applications run it from their myRPI checkout.
+export function installScript() {
+  return join(projectDir, 'scripts', 'install-suite.mjs');
 }
 
-// A minimal guidance file with a valid "Feature workflow" section, for temporary repositories.
+// A minimal application guidance file (AGENTS_APP.md) with a valid "Feature workflow" section, for temporary repositories.
 export function guidance({ extraYaml = '', before = '# Project guidance\n\nA sample project.\n' } = {}) {
   return `${before}
 ## Feature workflow
@@ -95,4 +97,9 @@ rpi:
   git: { commit: when-asked, push: never, branch: when-asked }
 ${extraYaml}\`\`\`
 `;
+}
+
+// Creates a new project with only what it needs from myRPI (task rpi:init).
+export function initScript() {
+  return join(projectDir, 'scripts', 'init-project.mjs');
 }

@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its implementation plan"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 2.0.0
+  version: 3.0.0
 ---
 
 # Implement an Approved Feature
@@ -24,7 +24,7 @@ The lifecycle, statuses, write scopes, gates, progress table, drift, amendments 
 - completed features' `.feature` files, in their specification location, only where the approved plan lists the change (tagged `@amended-by-<slug>`);
 - the feature folder's location, only for the confirmed archive move.
 
-The brief is read-only. So are the guidance file, the architecture document, other features' artifacts, and the configuration, unless the approved plan lists the change as implementation work. Follow the configured git rules for commits, pushes, and branches (capability: version-control).
+The brief is read-only. So are the guidance files, the architecture document, the project readme, other features' artifacts, and the configuration, unless the approved plan lists the change as implementation work. Follow the configured git rules for commits, pushes, and branches (capability: version-control).
 
 ## 1. Preflight and selection
 

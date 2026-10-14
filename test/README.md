@@ -1,6 +1,6 @@
 # Tests of the suite
 
-Everything here is myRPI's own verification. None of it is installed into applications: only `skills/` is.
+Everything here is myRPI's own verification. None of it is installed into applications: only `skills/`, the shared `AGENTS.md`, and (for new projects) `templates/Taskfile.yml` are. The installer, the suite check, and the project setup in `scripts/` run from this checkout and are not installed either.
 
 | Folder | What it holds |
 | --- | --- |

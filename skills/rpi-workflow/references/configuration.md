@@ -1,13 +1,13 @@
 # Repository configuration
 
-Each repository that uses the suite declares its workflow settings in a `## Feature workflow` section of its guidance file, `AGENTS.md` at the repository root. The section lives outside the skill folders, so copying in a newer suite version never overwrites it. `rpi-init` creates and updates it; the other skills only read it.
+Each repository that uses the suite declares its workflow settings in a `## Feature workflow` section of its application guidance file, `AGENTS_APP.md` at the repository root. That file holds everything specific to the repository. The shared guidance file, `AGENTS.md`, is installed together with the suite and replaced on every update, so it never holds configuration. `rpi-init` creates and updates the section; the other skills only read it.
 
 The section contains:
 
 1. one line saying that feature work follows the shared lifecycle in the `rpi-workflow` skill;
 2. exactly one fenced `yaml` block whose top-level key is `rpi`.
 
-The suite's scripts parse a documented YAML subset: block maps and sequences, flow maps `{ a: b }` and sequences `[a, b]`, plain, single-quoted, and double-quoted scalars, integers, booleans, and comments. Block scalars (`|`, `>`) and anchors are not supported.
+The suite check parses a documented YAML subset: block maps and sequences, flow maps `{ a: b }` and sequences `[a, b]`, plain, single-quoted, and double-quoted scalars, integers, booleans, and comments. Block scalars (`|`, `>`) and anchors are not supported.
 
 ## Keys
 
@@ -30,7 +30,7 @@ Values in angle brackets are placeholders. Leave out `specifications` when the s
 
 ```yaml
 rpi:
-  suite_version: 2.0.0
+  suite_version: 3.0.0
   features: { working: <working-folder>, completed: <completed-folder>, specifications: <specification-folder> }
   architecture: <architecture-document-or-none>
   verification:
@@ -45,4 +45,4 @@ rpi:
 
 ## Values that must not appear in suite text
 
-The suite check (`rpi-workflow/scripts/check-suite.mjs`) fails when a configured path, tool, or command appears in the suite's skill text (its scripts are not skill text). Values that are a single lowercase word are too generic to match reliably and are not checked; `none` and `<…>` placeholders are ignored.
+The suite check fails when a configured path, tool, or command appears in the suite's skill text. Values that are a single lowercase word are too generic to match reliably and are not checked; `none` and `<…>` placeholders are ignored.

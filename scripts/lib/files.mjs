@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 export const SUITE_SKILLS = ['rpi-workflow', 'rpi-init', 'rpi-refine', 'rpi-plan', 'rpi-implement', 'rpi-grill-me'];
 export const LEGACY_SKILLS = ['refine', 'plan', 'implement', 'grill-me'];
 
-// The skills directory that holds this copy of the suite (the parent of rpi-workflow).
-export const thisSuiteDir = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+// The suite's source: myRPI's skills directory (the parent of rpi-workflow).
+export const thisSuiteDir = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'skills');
 
 export const toPosix = (p) => p.split(sep).join('/');
 

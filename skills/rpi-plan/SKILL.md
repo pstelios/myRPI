@@ -1,11 +1,11 @@
 ---
 name: rpi-plan
-description: "Create or update a detailed implementation plan and Gherkin scenarios from a confirmed refinement brief, review architecture and existing-feature impact, and get the user's explicit approval. Use when planning a feature or revising its plan. Part of the rpi workflow; follows rpi-refine and hands off to rpi-implement."
+description: "Create or update a detailed implementation plan and Gherkin scenarios from a confirmed refinement brief, review architecture, readme, and existing-feature impact, and get the user's explicit approval. Use when planning a feature or revising its plan. Part of the rpi workflow; follows rpi-refine and hands off to rpi-implement."
 argument-hint: "Name the feature or point to its refinement brief"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 2.0.0
+  version: 3.0.0
 ---
 
 # Plan a Feature
@@ -18,7 +18,7 @@ The lifecycle, artifacts, plan frontmatter and statuses, write scopes, gates, pr
 
 Run the lifecycle's preflight (capability: file-read). Without the configuration, change nothing and stop with "Feature workflow configuration is missing. Run rpi-init first."
 
-Write scope: only this feature's `<slug>-plan.md` and `<slug>.feature` in `<features.working>/<slug>/` (capability: file-write). The brief, the architecture document, other features, code, tests, and configuration are read-only. Listing a file in the plan does not authorize changing it now.
+Write scope: only this feature's `<slug>-plan.md` and `<slug>.feature` in `<features.working>/<slug>/` (capability: file-write). The brief, the architecture document, the project readme, other features, code, tests, and configuration are read-only. Listing a file in the plan does not authorize changing it now.
 
 ## 2. Find and validate the brief
 
@@ -31,7 +31,7 @@ Write scope: only this feature's `<slug>-plan.md` and `<slug>.feature` in `<feat
 
 ## 3. Discover implementation context
 
-Read the guidance file and the architecture document from the configuration. Inspect the relevant source, tests, configuration, and feature folders to establish current behavior, the real files and boundaries involved, and which files are new or modified. Do not assume that illustrative paths in the architecture document exist.
+Read the guidance files, the architecture document from the configuration, and the project readme. Inspect the relevant source, tests, configuration, and feature folders to establish current behavior, the real files and boundaries involved, and which files are new or modified. Do not assume that illustrative paths in the architecture document exist.
 
 ## 4. Write the scenarios first
 
@@ -39,9 +39,11 @@ Create or update `<slug>.feature` from the brief's behavior and acceptance outco
 
 Assign every scenario a test kind from the configuration's `test_mapping` and name its planned test or eval case after it.
 
-## 5. Review architecture and existing features
+## 5. Review architecture, readme, and existing features
 
-- Compare the design with the architecture document: module boundaries, data, offline behavior, privacy, accessibility, deployment. Ask the user to confirm the outcome (capability: structured-question): either "no architecture change", or the proposed change and its consequences. An approved change becomes a planned change in the file table; the document itself is not edited during planning.
+- Compare the design with the architecture document: module boundaries, data, offline behavior, privacy, accessibility, deployment. Ask the user to confirm the outcome (capability: structured-question): either "no architecture change", or the proposed change and its consequences, presented as a change summary (below). An approved change becomes a planned change in the file table; the document itself is not edited during planning.
+- Compare the feature with the project readme (the readme file at the repository root, if there is one): what the project is and does, how to install, run, test, or configure it, and the usage, commands, options, and limitations it documents. Ask the user to confirm the outcome the same way: either "no readme change", or the proposed change as a change summary. An approved change becomes a planned change in the file table; the readme itself is not edited during planning. Without a readme, say so and do not propose one unless the brief asks for it.
+- A change summary lets the user decide without opening the document. Ask about each document in its own question, after the summary. For each part of the document that would change, give: the section, what it says now (quoted briefly, or "new section"), what it would say after the change, and why the feature needs it. Then state the consequences, such as constraints that other features or later work must follow. Keep it to what changes; do not restate unaffected parts.
 - Review completed and working features for overlaps, reading each completed feature's scenarios from its specification location. For each affected feature, state the current behavior, the conflict, and the recommended scenario, code, and test changes, and list completed `.feature` files to amend in the file table. Consequential conflicts are the user's decision before the plan can be `ready`. If nothing is affected, say what was checked.
 
 ## 6. Write the plan

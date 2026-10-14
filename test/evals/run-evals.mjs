@@ -11,10 +11,12 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '../../skills/rpi-workflow/scripts/lib/config.mjs';
-import { parseFrontmatter, setFrontmatter } from '../../skills/rpi-workflow/scripts/lib/frontmatter.mjs';
-import { hashFile, isInside, mirrorSuite, thisSuiteDir, toPosix, walk } from '../../skills/rpi-workflow/scripts/lib/files.mjs';
+import { SHARED_GUIDANCE_FILE, loadConfig } from '../../scripts/lib/config.mjs';
+import { parseFrontmatter, setFrontmatter } from '../../scripts/lib/frontmatter.mjs';
+import { hashFile, isInside, mirrorSuite, thisSuiteDir, toPosix, walk } from '../../scripts/lib/files.mjs';
 import { run, runShell, substitute, tokenize } from './lib/command.mjs';
+
+const checkSuiteScript = fileURLToPath(new URL('../../scripts/check-suite.mjs', import.meta.url));
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SKILLS_DIR = '.agents/skills';
@@ -78,6 +80,9 @@ function buildFixture(dir, testCase, suiteDir, skillsDir, fixtures) {
     writeFileSync(full, setFrontmatter(readFileSync(full, 'utf8'), values));
   }
   mirrorSuite(suiteDir, join(dir, skillsDir));
+  // Like an installed application, the fixture gets the shared guidance next to the suite's source.
+  const shared = join(dirname(resolve(suiteDir)), SHARED_GUIDANCE_FILE);
+  if (existsSync(shared) && !existsSync(join(dir, SHARED_GUIDANCE_FILE))) cpSync(shared, join(dir, SHARED_GUIDANCE_FILE));
 }
 
 async function git(cwd, args) {
@@ -222,7 +227,8 @@ async function check(a, ctx) {
       return true;
     }
     case 'command': {
-      const line = a.run.replaceAll('{suite}', ctx.skillsDir);
+      // {check} is myRPI's suite check of the fixture's installed suite: the suite holds no scripts.
+      const line = a.run.replaceAll('{check}', `node "${checkSuiteScript}" --suite ${ctx.skillsDir}`).replaceAll('{suite}', ctx.skillsDir);
       const r = await runShell(line, { cwd: ctx.dir, timeoutMs: 300_000 });
       const expected = a.exit ?? 0;
       return r.code === expected || `exit ${r.code}: ${(r.stdout + r.stderr).trim().split('\n').slice(-3).join(' / ')}`;
@@ -391,7 +397,7 @@ async function main() {
   const evals = section.config?.agent_evals;
   const harnesses = Array.isArray(evals?.harnesses) ? evals.harnesses : [];
   if (!harnesses.length) {
-    die('No agent eval harness is configured. Add agent_evals.harnesses to the "Feature workflow" section of the guidance file (see test/README.md).');
+    die('No agent eval harness is configured. Add agent_evals.harnesses to the "Feature workflow" section of AGENTS_APP.md (see test/README.md).');
   }
   for (const h of harnesses) if (!h.name || !h.start || !h.resume) die(`Harness ${h.name ?? '(unnamed)'} needs name, start, and resume.`);
 

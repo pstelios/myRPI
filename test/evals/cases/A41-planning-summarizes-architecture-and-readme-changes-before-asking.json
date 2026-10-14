@@ -1,0 +1,78 @@
+{
+  "id": "A41",
+  "title": "Planning summarizes architecture and readme changes before asking",
+  "fixture": {
+    "seeds": [
+      "node-app",
+      "configured",
+      "remote-brief"
+    ]
+  },
+  "disable": [
+    "structured-question"
+  ],
+  "turns": [
+    {
+      "say": "Use the rpi-plan skill to plan the remote-greeting feature."
+    },
+    {
+      "repeat": "Use the recommended option.",
+      "until": [
+        {
+          "type": "frontmatter",
+          "path": "work/features/remote-greeting/remote-greeting-plan.md",
+          "key": "status",
+          "equals": "ready"
+        }
+      ],
+      "max": 6
+    }
+  ],
+  "assert": [
+    {
+      "type": "contains",
+      "transcript": "all",
+      "pattern": "no network access"
+    },
+    {
+      "type": "contains",
+      "transcript": "all",
+      "pattern": "README"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/remote-greeting/remote-greeting-plan.md",
+      "pattern": "^## Architecture review\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/remote-greeting/remote-greeting-plan.md",
+      "pattern": "^## Readme review\\s*$"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/remote-greeting/remote-greeting-plan.md",
+      "pattern": "docs/design\\.md`?\\s*\\|\\s*`?modify"
+    },
+    {
+      "type": "contains",
+      "path": "work/features/remote-greeting/remote-greeting-plan.md",
+      "pattern": "README\\.md`?\\s*\\|\\s*`?modify"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "docs/design.md"
+    },
+    {
+      "type": "file-unchanged",
+      "path": "README.md"
+    },
+    {
+      "type": "changes-within",
+      "paths": [
+        "work/features/remote-greeting/remote-greeting-plan.md",
+        "work/features/remote-greeting/remote-greeting.feature"
+      ]
+    }
+  ]
+}

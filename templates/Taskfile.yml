@@ -1,0 +1,25 @@
+version: '3'
+
+# Created by myRPI's task rpi:init. rpi-init adds the project's own tasks (install, run, test, check,
+# build); keep the rpi:* tasks, they update and check the rpi skill suite and the shared AGENTS.md.
+
+tasks:
+  default:
+    desc: List available project tasks
+    cmds:
+      - task --list
+    silent: true
+
+  rpi:update:
+    desc: Install or update the rpi skill suite and the shared AGENTS.md from myRPI, running myRPI's installer (override with RPI_SOURCE=<myRPI checkout>)
+    vars:
+      RPI_SOURCE: '{{.RPI_SOURCE | default "__RPI_SOURCE__"}}'
+    cmds:
+      - node "{{.RPI_SOURCE}}/scripts/install-suite.mjs" --to __RPI_SKILLS__ --repo .
+
+  rpi:check:
+    desc: Check the installed rpi skill suite and the Feature workflow configuration with myRPI's suite check (override with RPI_SOURCE=<myRPI checkout>)
+    vars:
+      RPI_SOURCE: '{{.RPI_SOURCE | default "__RPI_SOURCE__"}}'
+    cmds:
+      - node "{{.RPI_SOURCE}}/scripts/check-suite.mjs" --suite __RPI_SKILLS__ --repo .

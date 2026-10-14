@@ -41,7 +41,7 @@ const STUB_CASE = {
 // A temporary project: guidance with the given harnesses, and a separate folder whose only case is STUB_CASE.
 function project(harnesses, options) {
   const root = tempDir('rpi-project-');
-  writeTree(root, { 'AGENTS.md': guidance({ extraYaml: harnesses ? harnessYaml(harnesses, options) : '' }) });
+  writeTree(root, { 'AGENTS_APP.md': guidance({ extraYaml: harnesses ? harnessYaml(harnesses, options) : '' }) });
   const cases = join(tempDir('rpi-cases-'), 'cases');
   writeTree(cases, { 'A01-stub-case.json': JSON.stringify(STUB_CASE, null, 2) });
   return { root, cases };
@@ -86,7 +86,7 @@ describe('Rule: Agent behavior is verified automatically', () => {
     const bad = cells[header.split('|').map((c) => c.trim()).indexOf('stub-bad')];
     assert.equal(good, 'pass');
     assert.match(bad, /^FAIL: file-exists result\.txt/);
-    assert.match(text, /Suite version: 2\.0\.0/);
+    assert.match(text, /Suite version: 3\.0\.0/);
   });
 
   test('Eval runner fails when no harness is configured', () => {

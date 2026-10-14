@@ -1,10 +1,12 @@
 // The repository's "Feature workflow" configuration: a "## Feature workflow" section of the
-// guidance file holding one fenced yaml block whose top-level key is "rpi".
+// application guidance file holding one fenced yaml block whose top-level key is "rpi".
+// The shared guidance file comes from the suite's source repository and holds no configuration.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseYaml } from './yaml.mjs';
 
-export const GUIDANCE_FILE = 'AGENTS.md';
+export const GUIDANCE_FILE = 'AGENTS_APP.md';
+export const SHARED_GUIDANCE_FILE = 'AGENTS.md';
 export const SECTION_HEADING = '## Feature workflow';
 const GIT_VALUES = ['never', 'when-asked', 'allowed'];
 

@@ -14,10 +14,16 @@ tasks:
       RPI_FEATURE: '{{.ROOT_DIR}}/docs/rpi-suite.feature'
     cmds:
       - node --test "test/suite/*.test.mjs"
-      - node skills/rpi-workflow/scripts/check-suite.mjs --repo .
+      - node scripts/check-suite.mjs --repo .
       - node test/evals/check-coverage.mjs --feature docs/rpi-suite.feature
 
   test:agents:
     desc: Run the agent eval cases in every configured harness (slow; paid model usage). Pass runner options after --, e.g. task test:agents -- --case A09
     cmds:
       - node test/evals/run-evals.mjs --repo . {{.CLI_ARGS}}
+
+  rpi:init:
+    desc: "Create a new project next to myRPI with only what it needs: the rpi skills, the shared AGENTS.md, AGENTS_APP.md, and a Taskfile with rpi:update and rpi:check. Asks for the name, or: task rpi:init -- <name> [--dir <parent-folder>]"
+    interactive: true
+    cmds:
+      - node scripts/init-project.mjs {{.CLI_ARGS}}

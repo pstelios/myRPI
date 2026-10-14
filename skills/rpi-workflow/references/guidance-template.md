@@ -1,15 +1,11 @@
-# Guidance file template
+# Application guidance file template
 
-`rpi-init` writes the new project's guidance file, `AGENTS.md`, from this skeleton. Replace every placeholder. Keep the file concise: it is the canonical place for durable, user-approved project rules. Do not describe feature artifacts, feature folders, or plan statuses outside the `## Feature workflow` section; the shared lifecycle in `rpi-workflow` defines them.
+`rpi-init` writes the new project's application guidance file, `AGENTS_APP.md`, from this skeleton. The shared guidance file `AGENTS.md` comes with the suite and is never written by `rpi-init`; do not repeat its rules here. It already tells readers to read this file and the architecture document named in the configuration. Replace every placeholder. Keep the file concise: it is the canonical place for durable, user-approved rules that are specific to this project. Do not describe feature artifacts, feature folders, or plan statuses outside the `## Feature workflow` section; the shared lifecycle in `rpi-workflow` defines them.
 
 ````markdown
 # <Project name>
 
 <One-sentence description.>
-
-## Read first
-
-Before planning or changing the project, read [<architecture document>](<architecture document>). It is the source of truth for architecture and technology choices.
 
 ## Project
 
@@ -17,10 +13,8 @@ Before planning or changing the project, read [<architecture document>](<archite
 
 ## Day-to-day work
 
-- Use <task runner> as the entry point: <install command>, <run command>, <test command>, <check command>, <build command>.
-- Run the relevant tests and checks for every change. Report a missing command explicitly instead of claiming it ran.
-- Keep tests close to the behavior they verify.
-- Do not commit secrets, credentials, or private user data.
+- Commands: <install command>, <run command>, <test command>, <check command>, <build command>.
+- <Where the tests of each part of the project live, if the shared guidance does not already settle it.>
 
 ## Git rules
 

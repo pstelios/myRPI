@@ -2,6 +2,24 @@
 
 The suite follows semantic versioning. The versioned contract is the skill frontmatter, the `(capability: <name>)` marker, the "Feature workflow" configuration schema, and the script command lines. A breaking change to any of them is a new major version.
 
+## 3.0.0 — 2026-10-14
+
+Breaking: project guidance is split into a shared file and an application file, and the configuration moves.
+
+- `AGENTS.md` is now the shared way of working, maintained in myRPI and installed into applications with the suite; every update replaces it with a clean copy. It tells agents to read `AGENTS_APP.md` and to write repository-specific instructions there.
+- `AGENTS_APP.md` holds everything specific to one repository, including the `## Feature workflow` configuration. The skills, the suite check, and the eval runner read the configuration from it. Move the section (and any other application-specific guidance) from `AGENTS.md` to `AGENTS_APP.md` and set `suite_version: 3.0.0`.
+- The installed suite holds no scripts any more: the installer and the suite check (with their libraries) moved to myRPI's `scripts/`, so applications always run the code of the checkout they pull from. Update the application's `rpi:update` task to `node <myRPI>/scripts/install-suite.mjs --to <skills> --repo .` and add `rpi:check` (`node <myRPI>/scripts/check-suite.mjs --suite <skills> --repo .`); see `templates/Taskfile.yml`. With `--repo`, the installer also installs `AGENTS.md`, creates `AGENTS_APP.md` when missing, and refuses (changing nothing) while `AGENTS.md` still holds the application's own content. Before the configuration exists, it checks only the suite.
+- New `task rpi:init` in myRPI: asks for a project name and creates the project next to myRPI with only the skills, `AGENTS.md`, an `AGENTS_APP.md` placeholder, and a Taskfile with `rpi:update` and `rpi:check`; `rpi-init` then sets the project up and adds its tasks to that Taskfile.
+- `rpi-init` writes the configuration and new projects' guidance to `AGENTS_APP.md`; agent entry files point only to `AGENTS.md`, which tells agents to read `AGENTS_APP.md` and the architecture document.
+- Three new static scenarios cover installing the shared guidance and creating a new project; eval fixtures and cases use `AGENTS_APP.md`, and the runner puts the shared `AGENTS.md` into each fixture.
+
+Also in this release:
+
+- `rpi-plan` presents a proposed architecture-document change as a change summary before asking for the user's decision: per affected section, what it says now, what it would say, and why, followed by the consequences.
+- `rpi-plan` also reviews the project readme the same way and asks the user to confirm "no readme change" or the summarized change. Plans have a new required `## Readme review` section, and both review sections record the confirmed summary.
+- `rpi-implement` may change the architecture document and the readme where the approved plan lists the change.
+- New behavior scenario with eval case A41 and the `remote-brief` fixture; A24 also checks the new section.
+
 ## 2.0.0 — 2026-10-12
 
 Breaking: the suite folders now hold only what applications need.

@@ -7,7 +7,7 @@
       "configured"
     ],
     "replace": {
-      "AGENTS.md": [
+      "AGENTS_APP.md": [
         [
           "full: [npm run check]",
           "full: [npm test]"
@@ -27,7 +27,7 @@
       "until": [
         {
           "type": "contains",
-          "path": "AGENTS.md",
+          "path": "AGENTS_APP.md",
           "pattern": "npm run check"
         }
       ],
@@ -37,19 +37,19 @@
   "assert": [
     {
       "type": "section-count",
-      "path": "AGENTS.md",
+      "path": "AGENTS_APP.md",
       "heading": "## Feature workflow",
       "count": 1
     },
     {
       "type": "contains",
-      "path": "AGENTS.md",
+      "path": "AGENTS_APP.md",
       "pattern": "npm run check"
     },
     {
       "type": "changes-within",
       "paths": [
-        "AGENTS.md"
+        "AGENTS_APP.md"
       ]
     }
   ]

@@ -18,7 +18,7 @@
       "until": [
         {
           "type": "file-exists",
-          "path": "AGENTS.md"
+          "path": "AGENTS_APP.md"
         }
       ],
       "max": 12
