@@ -143,6 +143,14 @@ Feature: Portable RPI workflow skill suite
       Then all suite rules pass
       And repository-only rules are reported as skipped
 
+    @static
+    Scenario: The suite check reports an installed copy that differs from myRPI
+      Given an application with the suite and the shared guidance installed from myRPI
+      When an installed suite file or the shared guidance is changed, or the installed suite has a different version
+      Then the suite check exits with a failure
+      And it reports each differing file, or the installed and myRPI versions, and tells the user to run "task rpi:update"
+      And the check passes again after the suite is installed again
+
   Rule: Agent behavior is verified automatically
 
     @static

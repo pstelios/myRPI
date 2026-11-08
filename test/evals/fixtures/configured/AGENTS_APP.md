@@ -11,7 +11,7 @@ Feature work follows the shared lifecycle in the `rpi-workflow` skill (`referenc
 
 ```yaml
 rpi:
-  suite_version: 3.0.0
+  suite_version: 3.0.1
   features: { working: work/features, completed: work/done }
   architecture: docs/design.md
   verification:

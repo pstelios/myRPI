@@ -2,6 +2,12 @@
 
 The suite follows semantic versioning. The versioned contract is the skill frontmatter, the `(capability: <name>)` marker, the "Feature workflow" configuration schema, and the script command lines. A breaking change to any of them is a new major version.
 
+## 3.0.1 — 2026-11-08
+
+- `rpi-grill-me` asks each question once: it does not restate or rephrase a question, or move on to the next decision, until the user has answered.
+- The suite check reports an installed copy that is out of date (new `up-to-date` rule). When the checked suite is not myRPI's own `skills/`, it compares it with the suite of the myRPI checkout that runs the check: a different version is reported once (older: run `task rpi:update`; newer: update the myRPI checkout), and at the same version every changed, missing, or extra file is reported. In repository mode it also reports a shared `AGENTS.md` that differs from myRPI's. Line endings are ignored. Applications need no configuration change apart from `suite_version: 3.0.1`.
+- Eval cases A16 and A38 accept more phrasings of the same behavior.
+
 ## 3.0.0 — 2026-10-14
 
 Breaking: project guidance is split into a shared file and an application file, and the configuration moves.

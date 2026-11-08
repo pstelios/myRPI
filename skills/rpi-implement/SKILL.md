@@ -5,7 +5,7 @@ argument-hint: "Name the feature or point to its implementation plan"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 3.0.0
+  version: 3.0.1
 ---
 
 # Implement an Approved Feature

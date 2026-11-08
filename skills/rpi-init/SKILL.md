@@ -5,7 +5,7 @@ argument-hint: "Optionally say 'new project' or describe what to configure"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 3.0.0
+  version: 3.0.1
 ---
 
 # Initialize the RPI Workflow

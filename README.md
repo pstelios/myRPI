@@ -52,7 +52,7 @@ With Node.js installed (no dependencies), run `task rpi:check` in the project, o
 node <myRPI>/scripts/check-suite.mjs --suite <skill-location> --repo .
 ```
 
-It checks the suite (names, shared version, no harness-specific or project-specific text, every capability defined with a fallback) and the project (configuration present and complete, no duplicated lifecycle text, one copy of the suite). Use `--suite-only` to check just the suite.
+It checks the suite (names, shared version, no harness-specific or project-specific text, every capability defined with a fallback) and the project (configuration present and complete, no duplicated lifecycle text, one copy of the suite). It also checks that the installed suite and `AGENTS.md` are identical to those of the myRPI checkout running the check, so a project that is behind (or holds local edits) is told to run `task rpi:update`. Use `--suite-only` to check just the suite.
 
 ## Agent evals
 

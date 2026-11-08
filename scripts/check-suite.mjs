@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Static checks for the rpi skill suite and, in repository mode, for the repository that uses it.
 // Usage: node check-suite.mjs [--repo <root>] [--suite <skills-dir>] [--suite-only]
+// A suite other than this checkout's skills/ is an installed copy: it must be identical to this
+// checkout's suite, and in repository mode the repository's shared guidance must match this checkout's.
 // Prints one line per finding: <file>:<line> <rule-id> <message>. Exits 1 when there are findings.
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './lib/frontmatter.mjs';
-import { GUIDANCE_FILE, SECTION_HEADING, configValues, loadConfig, validateConfig } from './lib/config.mjs';
+import { GUIDANCE_FILE, SECTION_HEADING, SHARED_GUIDANCE_FILE, configValues, loadConfig, validateConfig } from './lib/config.mjs';
 import { LEGACY_SKILLS, SUITE_SKILLS, isInside, thisSuiteDir, toPosix, walk } from './lib/files.mjs';
 
 export const REPOSITORY_RULES = ['app-values', 'config', 'no-restated-lifecycle', 'single-copy'];
@@ -31,6 +33,23 @@ const lineOf = (text, index) => text.slice(0, index).split('\n').length;
 // Generic single lowercase words (such as "test") cannot be matched reliably against prose.
 const isSpecificValue = (v) => /[\s/.:\\]|[A-Z]/.test(v);
 
+const realPath = (p) => { try { return realpathSync(p); } catch { return resolve(p); } };
+const sameText = (a, b) => readFileSync(a, 'utf8').replace(/\r\n/g, '\n') === readFileSync(b, 'utf8').replace(/\r\n/g, '\n');
+
+function suiteVersion(suiteDir) {
+  const file = join(suiteDir, 'rpi-workflow', 'SKILL.md');
+  if (!existsSync(file)) return null;
+  try { return String(parseFrontmatter(readFileSync(file, 'utf8')).data?.metadata?.version ?? '') || null; } catch { return null; }
+}
+
+// Negative when a is older than b, positive when newer, 0 when the release numbers are equal.
+function compareVersions(a, b) {
+  const parts = (v) => v.split('-')[0].split('.').map(Number);
+  const [x, y] = [parts(a), parts(b)];
+  for (let i = 0; i < 3; i += 1) if (x[i] !== y[i]) return x[i] - y[i];
+  return 0;
+}
+
 function suiteFiles(suiteDir) {
   const files = [];
   for (const skill of SUITE_SKILLS) {
@@ -42,8 +61,9 @@ function suiteFiles(suiteDir) {
   return files;
 }
 
-export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly = false, base = null } = {}) {
+export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly = false, base = null, sourceDir = thisSuiteDir } = {}) {
   suiteDir = resolve(suiteDir);
+  sourceDir = resolve(sourceDir);
   const root = suiteOnly ? null : resolve(repoDir ?? process.cwd());
   const baseDir = resolve(base ?? root ?? process.cwd());
   const show = (p) => (isInside(p, baseDir) ? toPosix(relative(baseDir, p)) : toPosix(p));
@@ -80,6 +100,34 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     if (v.version !== reference) add(v.file, v.line, 'version', `version ${v.version} differs from the suite version ${reference}`);
   }
   result.version = reference ?? null;
+
+  // up-to-date: an installed copy is identical to the myRPI suite it is installed from.
+  const isInstalledCopy = existsSync(sourceDir) && realPath(suiteDir) !== realPath(sourceDir);
+  result.sourceVersion = isInstalledCopy ? suiteVersion(sourceDir) : null;
+  if (isInstalledCopy) {
+    const source = result.sourceVersion;
+    const update = 'run task rpi:update';
+    const anchor = versions.find((v) => v.skill === 'rpi-workflow') ?? versions[0];
+    if (reference && source && reference !== source) {
+      const order = compareVersions(reference, source);
+      const message = order < 0 ? `installed suite ${reference} is older than ${source} in myRPI (${show(sourceDir)}); ${update}`
+        : order > 0 ? `installed suite ${reference} is newer than ${source} in myRPI (${show(sourceDir)}); update the myRPI checkout`
+          : `installed suite ${reference} differs from ${source} in myRPI (${show(sourceDir)}); ${update}`;
+      add(anchor?.file ?? join(suiteDir, 'rpi-workflow', 'SKILL.md'), anchor?.line ?? 1, 'up-to-date', message);
+    } else {
+      const label = `myRPI's suite ${source ?? '?'}`;
+      for (const skill of SUITE_SKILLS) {
+        const installed = new Set(walk(join(suiteDir, skill)));
+        const original = new Set(walk(join(sourceDir, skill)));
+        for (const rel of [...new Set([...installed, ...original])].sort()) {
+          const file = join(suiteDir, skill, rel);
+          if (!installed.has(rel)) add(file, 1, 'up-to-date', `missing; it is part of ${label}; ${update}`);
+          else if (!original.has(rel)) add(file, 1, 'up-to-date', `not part of ${label}; ${update}, or move the file to myRPI first`);
+          else if (!sameText(file, join(sourceDir, skill, rel))) add(file, 1, 'up-to-date', `differs from ${label}; ${update}, or move the change to myRPI first`);
+        }
+      }
+    }
+  }
 
   // harness-terms, capabilities
   const texts = suiteFiles(suiteDir).map((file) => ({ file, text: readFileSync(file, 'utf8') }));
@@ -167,8 +215,15 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
       });
     }
 
+    // up-to-date: the shared guidance is identical to the one of the myRPI checkout.
+    const sharedHere = join(root, SHARED_GUIDANCE_FILE);
+    const sharedSource = join(sourceDir, '..', SHARED_GUIDANCE_FILE);
+    if (existsSync(sharedHere) && existsSync(sharedSource) && realPath(sharedHere) !== realPath(sharedSource) && !sameText(sharedHere, sharedSource)) {
+      add(sharedHere, 1, 'up-to-date', `differs from myRPI's shared guidance; run task rpi:update, and keep repository-specific instructions in ${GUIDANCE_FILE}`);
+    }
+
     // single-copy
-    const real = (p) => { try { return realpathSync(p); } catch { return resolve(p); } };
+    const real = realPath;
     const canonical = real(suiteDir);
     for (const location of KNOWN_SKILL_LOCATIONS) {
       const dir = join(root, location);

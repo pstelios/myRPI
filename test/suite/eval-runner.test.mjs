@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, sep } from 'node:path';
-import { cleanup, evalScript, guidance, read, runNode, stubHarness, tempDir, writeTree } from './helpers.mjs';
+import { cleanup, evalScript, guidance, read, runNode, stubHarness, suiteDir, tempDir, writeTree } from './helpers.mjs';
 
 after(cleanup);
 
@@ -86,7 +86,8 @@ describe('Rule: Agent behavior is verified automatically', () => {
     const bad = cells[header.split('|').map((c) => c.trim()).indexOf('stub-bad')];
     assert.equal(good, 'pass');
     assert.match(bad, /^FAIL: file-exists result\.txt/);
-    assert.match(text, /Suite version: 3\.0\.0/);
+    const version = read(join(suiteDir, 'rpi-workflow', 'SKILL.md')).match(/^\s+version:\s*(\S+)$/m)[1];
+    assert.ok(text.includes(`Suite version: ${version}`), `reports suite version ${version}`);
   });
 
   test('Eval runner fails when no harness is configured', () => {

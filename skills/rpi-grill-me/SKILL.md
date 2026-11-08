@@ -5,7 +5,7 @@ argument-hint: "Describe the plan, decision, or idea to stress-test"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 3.0.0
+  version: 3.0.1
 ---
 
 # Grill Me

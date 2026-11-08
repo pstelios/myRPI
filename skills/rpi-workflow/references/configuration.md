@@ -30,7 +30,7 @@ Values in angle brackets are placeholders. Leave out `specifications` when the s
 
 ```yaml
 rpi:
-  suite_version: 3.0.0
+  suite_version: 3.0.1
   features: { working: <working-folder>, completed: <completed-folder>, specifications: <specification-folder> }
   architecture: <architecture-document-or-none>
   verification:

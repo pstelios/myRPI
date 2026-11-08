@@ -1,7 +1,7 @@
 // Static scenarios from the "The suite is reusable from a separate repository" rule.
 import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { SUITE_SKILLS, checkScript, cleanup, guidance, initScript, installScript, projectDir, read, runNode, suiteDir, tempDir, writeTree } from './helpers.mjs';
 
@@ -142,5 +142,52 @@ describe('Rule: The suite is reusable from a separate repository', () => {
     for (const rule of ['app-values', 'config', 'no-restated-lifecycle', 'single-copy']) {
       assert.match(run.stdout, new RegExp(`^skipped ${rule}\\b`, 'm'), `${rule} reported as skipped`);
     }
+  });
+
+  test('The suite check reports an installed copy that differs from myRPI', () => {
+    const app = tempDir('rpi-install-');
+    writeTree(app, { 'AGENTS_APP.md': guidance() });
+    const skills = join(app, '.claude', 'skills');
+    const install = () => runNode(installScript(), ['--to', skills, '--repo', app]);
+    const check = () => runNode(checkScript(), ['--suite', skills, '--repo', app]);
+    assert.equal(install().code, 0);
+    const clean = check();
+    assert.equal(clean.code, 0, `a fresh install passes:\n${clean.output}`);
+
+    // Changed, extra, and removed suite files and a changed shared guidance are each reported.
+    writeFileSync(join(skills, 'rpi-grill-me', 'SKILL.md'), `${read(join(skills, 'rpi-grill-me', 'SKILL.md'))}\nA local edit.\n`);
+    writeTree(skills, { 'rpi-plan/notes.md': 'Local notes.\n' });
+    rmSync(join(skills, 'rpi-refine', 'SKILL.md'));
+    writeFileSync(join(app, 'AGENTS.md'), `${read(join(app, 'AGENTS.md'))}\nA project rule.\n`);
+    const edited = check();
+    assert.equal(edited.code, 1, edited.output);
+    for (const pattern of [
+      /^\.claude\/skills\/rpi-grill-me\/SKILL\.md:1 up-to-date differs from myRPI's suite .*task rpi:update/m,
+      /^\.claude\/skills\/rpi-plan\/notes\.md:1 up-to-date not part of myRPI's suite/m,
+      /^\.claude\/skills\/rpi-refine\/SKILL\.md:1 up-to-date missing/m,
+      /^AGENTS\.md:1 up-to-date differs from myRPI's shared guidance/m,
+    ]) assert.match(edited.stdout, pattern);
+
+    // Line endings alone are not a difference.
+    assert.equal(install().code, 0);
+    const workflow = join(skills, 'rpi-workflow', 'SKILL.md');
+    writeFileSync(workflow, read(workflow).replace(/\r?\n/g, '\r\n'));
+    assert.equal(check().code, 0, 'CRLF copy passes');
+
+    // A different version is reported once, with both versions.
+    const source = read(join(suiteDir, 'rpi-workflow', 'SKILL.md')).match(/^\s+version:\s*(\S+)$/m)[1];
+    for (const skill of SUITE_SKILLS) {
+      const file = join(skills, skill, 'SKILL.md');
+      writeFileSync(file, read(file).replace(/^(\s+version:\s*)\S+$/m, '$10.0.1'));
+    }
+    const older = check();
+    assert.equal(older.code, 1);
+    const lines = older.stdout.split('\n').filter((l) => / up-to-date /.test(l));
+    assert.equal(lines.length, 1, older.output);
+    assert.match(lines[0], new RegExp(`^\\.claude/skills/rpi-workflow/SKILL\\.md:\\d+ up-to-date installed suite 0\\.0\\.1 is older than ${source.replace(/\./g, '\\.')} in myRPI .*task rpi:update`));
+
+    // Installing again brings the copy back in line.
+    assert.equal(install().code, 0);
+    assert.equal(check().code, 0);
   });
 });
