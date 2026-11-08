@@ -20,7 +20,7 @@ Finding **facts** is your job, never the user's. When a question depends on a fa
 
 ## Asking
 
-- Ask exactly **one decision per question**, then end the turn and wait for the answer (capability: structured-question). Never bundle decisions, and never ask a second question in the same message, even when the next decisions look small. Before sending, check that the message contains exactly one question; if it contains more, keep only the most important one. Several small decisions together belong in the low-impact defaults list below, not in separate questions in one message.
+- Ask exactly **one decision per question**, then end the turn and wait for the answer (capability: structured-question). Never bundle decisions, and never ask a second question in the same message, even when the next decisions look small. Before sending, check that the message contains exactly one question; if it contains more, keep only the most important one. Ask it once: do not restate or rephrase it, and do not move on to the next decision, until the user has answered. Several small decisions together belong in the low-impact defaults list below, not in separate questions in one message.
 - Offer concise, distinct choices. Put the recommended choice first, marked `(Recommended)`, with a short rationale when it helps. Say briefly why the decision matters when that is not obvious.
 - Phrase a naturally yes/no decision so that "yes" accepts the recommendation.
 - After each answer, update the tree and recompute the frontier before asking again.
