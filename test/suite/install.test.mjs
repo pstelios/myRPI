@@ -157,15 +157,16 @@ describe('Rule: The suite is reusable from a separate repository', () => {
     // Changed, extra, and removed suite files and a changed shared guidance are each reported.
     writeFileSync(join(skills, 'rpi-grill-me', 'SKILL.md'), `${read(join(skills, 'rpi-grill-me', 'SKILL.md'))}\nA local edit.\n`);
     writeTree(skills, { 'rpi-plan/notes.md': 'Local notes.\n' });
-    rmSync(join(skills, 'rpi-refine', 'SKILL.md'));
+    rmSync(join(skills, 'rpi-workflow', 'references', 'new-project.md'));
     writeFileSync(join(app, 'AGENTS.md'), `${read(join(app, 'AGENTS.md'))}\nA project rule.\n`);
     const edited = check();
-    assert.equal(edited.code, 1, edited.output);
+    assert.equal(edited.code, 0, `drift from myRPI is a warning, not an error:\n${edited.output}`);
+    assert.match(edited.stdout, /0 finding\(s\), 4 warning\(s\); all checks passed \(warnings do not fail the check\)/);
     for (const pattern of [
-      /^\.claude\/skills\/rpi-grill-me\/SKILL\.md:1 up-to-date differs from myRPI's suite .*task rpi:update/m,
-      /^\.claude\/skills\/rpi-plan\/notes\.md:1 up-to-date not part of myRPI's suite/m,
-      /^\.claude\/skills\/rpi-refine\/SKILL\.md:1 up-to-date missing/m,
-      /^AGENTS\.md:1 up-to-date differs from myRPI's shared guidance/m,
+      /^\.claude\/skills\/rpi-grill-me\/SKILL\.md:1 up-to-date warning: differs from myRPI's suite .*task rpi:update/m,
+      /^\.claude\/skills\/rpi-plan\/notes\.md:1 up-to-date warning: not part of myRPI's suite/m,
+      /^\.claude\/skills\/rpi-workflow\/references\/new-project\.md:1 up-to-date warning: missing/m,
+      /^AGENTS\.md:1 up-to-date warning: differs from myRPI's shared guidance/m,
     ]) assert.match(edited.stdout, pattern);
 
     // Line endings alone are not a difference.
@@ -181,13 +182,20 @@ describe('Rule: The suite is reusable from a separate repository', () => {
       writeFileSync(file, read(file).replace(/^(\s+version:\s*)\S+$/m, '$10.0.1'));
     }
     const older = check();
-    assert.equal(older.code, 1);
+    // The drift from myRPI is only a warning. The failure is the configuration, which now claims a
+    // review for a suite newer than the installed files: an inconsistency inside the project.
+    assert.equal(older.code, 1, older.output);
+    const errors = older.stdout.split('\n').filter((l) => /^\S+:\d+ [a-z-]+ /.test(l) && !/ up-to-date /.test(l));
+    assert.deepEqual(errors.map((l) => l.split(' ')[1]).sort(), ['config-review', 'release-notes'], older.output);
+    assert.ok(errors.some((l) => /^AGENTS_APP\.md:\d+ config-review suite_version .* is newer than the installed suite 0\.0\.1/.test(l)), older.output);
     const lines = older.stdout.split('\n').filter((l) => / up-to-date /.test(l));
     assert.equal(lines.length, 1, older.output);
-    assert.match(lines[0], new RegExp(`^\\.claude/skills/rpi-workflow/SKILL\\.md:\\d+ up-to-date installed suite 0\\.0\\.1 is older than ${source.replace(/\./g, '\\.')} in myRPI .*task rpi:update`));
+    assert.match(lines[0], new RegExp(`^\\.claude/skills/rpi-workflow/SKILL\\.md:\\d+ up-to-date warning: installed suite 0\\.0\\.1 is older than ${source.replace(/\./g, '\\.')} in myRPI .*task rpi:update`));
 
-    // Installing again brings the copy back in line.
+    // Installing again brings the copy back in line, with no warning left.
     assert.equal(install().code, 0);
-    assert.equal(check().code, 0);
+    const again = check();
+    assert.equal(again.code, 0);
+    assert.doesNotMatch(again.stdout, /warning/);
   });
 });

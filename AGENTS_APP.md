@@ -15,7 +15,7 @@ myRPI is the editing source of the rpi workflow skill suite in `skills/` and of 
 - `task check` runs the suite's static tests and checks (offline, fast); `task test:agents` runs the agent eval cases in every configured harness (slow, paid model usage, needs the harness CLIs logged in). Pass runner options after `--`, for example `task test:agents -- --case A09 --harness copilot-cli`.
 - The suite's Gherkin behavior specification lives in `docs/` (the file `task check` names). Every `@agent` scenario has exactly one eval case in `test/evals/cases/`; `task check` enforces it.
 - Keep the suite harness-neutral and free of application-specific values; `task check` enforces both.
-- For every release, bump `metadata.version` in all six skills, update [CHANGELOG.md](CHANGELOG.md), and run `task test:agents` in both harnesses. Results go to [docs/agent-eval-results.md](docs/agent-eval-results.md); the runner merges new results into it.
+- For every release, bump `metadata.version` in all six skills, update [CHANGELOG.md](CHANGELOG.md), and run `task test:agents` in both harnesses. Every changelog entry ends with a `### Configuration changes` subsection that says what an application changes in its "Feature workflow" configuration, or "None.", and the same text is the version's section in [configuration-changes.md](skills/rpi-workflow/references/configuration-changes.md), which ships with the suite. `rpi-init` and `task rpi:update` read only that file to find out what a configuration needs after an update, so name every added, renamed, removed, or re-interpreted key there; `task check` fails when a version lacks the text or the two differ. Set `suite_version` in this file and in the eval fixtures to the new version. Results go to [docs/agent-eval-results.md](docs/agent-eval-results.md); the runner merges new results into it.
 
 ## Feature workflow
 
@@ -23,7 +23,7 @@ Feature work follows the shared lifecycle in the `rpi-workflow` skill (`skills/r
 
 ```yaml
 rpi:
-  suite_version: 3.0.1
+  suite_version: 3.1.0
   features: { working: docs/features-working, completed: docs/features }
   architecture: none
   verification:

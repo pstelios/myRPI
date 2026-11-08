@@ -77,7 +77,10 @@ export function installScript() {
 }
 
 // A minimal application guidance file (AGENTS_APP.md) with a valid "Feature workflow" section, for temporary repositories.
-export function guidance({ extraYaml = '', before = '# Project guidance\n\nA sample project.\n' } = {}) {
+// The version of the suite in skills/, which a freshly reviewed configuration records.
+export const suiteVersion = readFileSync(join(suiteDir, 'rpi-workflow', 'SKILL.md'), 'utf8').match(/^\s+version:\s*(\S+)\s*$/m)[1];
+
+export function guidance({ extraYaml = '', before = '# Project guidance\n\nA sample project.\n', reviewedVersion = suiteVersion } = {}) {
   return `${before}
 ## Feature workflow
 
@@ -85,7 +88,7 @@ Follow the shared lifecycle in the rpi-workflow skill.
 
 \`\`\`yaml
 rpi:
-  suite_version: 1.0.0
+  suite_version: ${reviewedVersion}
   features: { working: specs/active, completed: specs/archive }
   architecture: none
   verification:

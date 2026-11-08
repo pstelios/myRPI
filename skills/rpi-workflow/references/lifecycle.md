@@ -19,7 +19,7 @@ Before anything else, `rpi-refine`, `rpi-plan`, and `rpi-implement`:
 
 1. Read the shared guidance file `AGENTS.md`, if present, and the application guidance file `AGENTS_APP.md` with its `## Feature workflow` section, both at the repository root (capability: file-read).
 2. If the file, the section, or any required key is missing or unparsable, change nothing and stop with: "Feature workflow configuration is missing. Run rpi-init first." Name what is missing. Do not guess folders, commands, or tools.
-3. Compare the configuration's `suite_version` with the skill's `metadata.version`. If the major versions differ, warn and ask whether to continue (capability: structured-question).
+3. Compare the configuration's `suite_version` with the skill's `metadata.version`. If they differ, warn that the configuration was not reviewed for this suite version, name the configuration changes that [configuration-changes.md](configuration-changes.md) lists for the releases in between (sections that do not start with "None"), recommend running `rpi-init` to review the configuration, and ask whether to continue (capability: structured-question).
 4. Read this file and [capabilities.md](capabilities.md) (capability: skill-reference).
 
 ## Artifacts

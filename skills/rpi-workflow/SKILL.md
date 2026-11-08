@@ -4,7 +4,7 @@ description: "Shared reference for the rpi feature-workflow suite (rpi-init, rpi
 user-invocable: false
 metadata:
   suite: rpi
-  version: 3.0.1
+  version: 3.1.0
 ---
 
 # RPI Workflow Reference
@@ -18,6 +18,7 @@ This skill holds the material that every rpi skill shares. It defines things onc
 | [references/lifecycle.md](references/lifecycle.md) | Artifacts, statuses, transitions, write scopes, gates, progress, drift, light path, amendments, legacy artifacts, git rules |
 | [references/capabilities.md](references/capabilities.md) | The capability vocabulary: what each environment capability must do and its fallback |
 | [references/configuration.md](references/configuration.md) | The repository's "Feature workflow" configuration section |
+| [references/configuration-changes.md](references/configuration-changes.md) | What each release changes in the configuration; read when reviewing it after a suite update |
 | [references/brief-template.md](references/brief-template.md) | Refinement brief template |
 | [references/plan-template.md](references/plan-template.md) | Implementation plan template, with required and optional sections |
 | [references/guidance-template.md](references/guidance-template.md) | Application guidance file skeleton for a new project |

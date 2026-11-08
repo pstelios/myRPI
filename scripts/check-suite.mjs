@@ -1,17 +1,20 @@
 #!/usr/bin/env node
 // Static checks for the rpi skill suite and, in repository mode, for the repository that uses it.
 // Usage: node check-suite.mjs [--repo <root>] [--suite <skills-dir>] [--suite-only]
-// A suite other than this checkout's skills/ is an installed copy: it must be identical to this
-// checkout's suite, and in repository mode the repository's shared guidance must match this checkout's.
-// Prints one line per finding: <file>:<line> <rule-id> <message>. Exits 1 when there are findings.
+// A suite other than this checkout's skills/ is an installed copy; when it or the repository's shared guidance
+// differs from this checkout's, that is a warning (rule up-to-date): it reports drift from the source repository.
+// Prints one line per finding: <file>:<line> <rule-id> <message>, and one per warning with "warning:" before the
+// message. Findings are inconsistencies inside the project, including a configuration that is due for review,
+// and exit 1; warnings never fail the check.
 import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseFrontmatter } from './lib/frontmatter.mjs';
 import { GUIDANCE_FILE, SECTION_HEADING, SHARED_GUIDANCE_FILE, configValues, loadConfig, validateConfig } from './lib/config.mjs';
 import { LEGACY_SKILLS, SUITE_SKILLS, isInside, thisSuiteDir, toPosix, walk } from './lib/files.mjs';
+import { CHANGELOG_SUBSECTION, NOTES_FILE, SEMVER, compareVersions, normalizeText, parseChangelog, parseNotes, pendingChanges } from './lib/release-notes.mjs';
 
-export const REPOSITORY_RULES = ['app-values', 'config', 'no-restated-lifecycle', 'single-copy'];
+export const REPOSITORY_RULES = ['app-values', 'config', 'config-review', 'no-restated-lifecycle', 'single-copy'];
 export const KNOWN_SKILL_LOCATIONS = ['.claude/skills', '.agents/skills', '.github/skills'];
 const PLAN_STATUSES = ['draft', 'blocked', 'ready', 'approved', 'in-progress', 'verified'];
 
@@ -25,7 +28,11 @@ const HARNESS_TERMS = [
   ['slash-command invocation', /(?<![\w.\/~:\\-])\/[a-z][a-z0-9-]*(?![\w\/.\\-])/],
 ];
 
-const CAPABILITY_REF = /\(capability:\s*([a-z][a-z0-9-]*)\)/g;
+// Rules whose findings are warnings: they report drift from the source repository, not an
+// inconsistency inside the project, so they never fail the check.
+export const WARNING_RULES = ['up-to-date'];
+
+const CAPABILITY_REF =/\(capability:\s*([a-z][a-z0-9-]*)\)/g;
 
 const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const lineOf = (text, index) => text.slice(0, index).split('\n').length;
@@ -40,14 +47,6 @@ function suiteVersion(suiteDir) {
   const file = join(suiteDir, 'rpi-workflow', 'SKILL.md');
   if (!existsSync(file)) return null;
   try { return String(parseFrontmatter(readFileSync(file, 'utf8')).data?.metadata?.version ?? '') || null; } catch { return null; }
-}
-
-// Negative when a is older than b, positive when newer, 0 when the release numbers are equal.
-function compareVersions(a, b) {
-  const parts = (v) => v.split('-')[0].split('.').map(Number);
-  const [x, y] = [parts(a), parts(b)];
-  for (let i = 0; i < 3; i += 1) if (x[i] !== y[i]) return x[i] - y[i];
-  return 0;
 }
 
 function suiteFiles(suiteDir) {
@@ -68,8 +67,9 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
   const baseDir = resolve(base ?? root ?? process.cwd());
   const show = (p) => (isInside(p, baseDir) ? toPosix(relative(baseDir, p)) : toPosix(p));
   const findings = [];
-  const add = (file, line, rule, message) => findings.push({ file: show(file), line, rule, message });
-  const result = { findings, skipped: [], scanned: { harnessTerms: 0, appValues: 0 }, capabilities: { referenced: [], defined: [] }, config: null, configSection: null };
+  const warnings = [];
+  const add = (file, line, rule, message) => (WARNING_RULES.includes(rule) ? warnings : findings).push({ file: show(file), line, rule, message });
+  const result = { findings, warnings, skipped: [], scanned: { harnessTerms: 0, appValues: 0 }, capabilities: { referenced: [], defined: [] }, config: null, configSection: null };
 
   // suite-members
   const members = existsSync(suiteDir)
@@ -129,8 +129,35 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     }
   }
 
+  // release-notes: the suite carries the configuration changes of every release, and myRPI's
+  // changelog states the same text for each release.
+  const notesFile = join(suiteDir, NOTES_FILE);
+  let noteSections = null;
+  if (members.includes('rpi-workflow')) {
+    if (!existsSync(notesFile)) add(notesFile, 1, 'release-notes', 'configuration-changes.md is missing; it lists the configuration changes of every release');
+    else {
+      noteSections = parseNotes(readFileSync(notesFile, 'utf8'));
+      for (const n of noteSections) {
+        if (!SEMVER.test(n.version)) add(notesFile, n.line, 'release-notes', `"${n.version}" is not a semantic version`);
+        else if (!n.body) add(notesFile, n.line, 'release-notes', `section ${n.version} is empty; list the changes or write "None."`);
+      }
+      if (reference && !noteSections.some((n) => n.version === reference)) add(notesFile, 1, 'release-notes', `no section for suite version ${reference}`);
+      const changelog = join(suiteDir, '..', 'CHANGELOG.md');
+      if (existsSync(changelog) && realPath(suiteDir) === realPath(sourceDir)) {
+        const entries = parseChangelog(readFileSync(changelog, 'utf8'));
+        if (reference && !entries.some((e) => e.version === reference)) add(changelog, 1, 'release-notes', `no entry for suite version ${reference}`);
+        for (const entry of entries) {
+          const note = noteSections.find((n) => n.version === entry.version);
+          if (entry.notes === null) add(changelog, entry.line, 'release-notes', `version ${entry.version} has no "${CHANGELOG_SUBSECTION}" subsection; state the changes or "None."`);
+          else if (!note) add(changelog, entry.line, 'release-notes', `version ${entry.version} has no section in ${toPosix(relative(baseDir, notesFile))}`);
+          else if (normalizeText(note.body) !== normalizeText(entry.notes)) add(changelog, entry.line, 'release-notes', `"${CHANGELOG_SUBSECTION}" of ${entry.version} differs from its section in ${toPosix(relative(baseDir, notesFile))}`);
+        }
+      }
+    }
+  }
+
   // harness-terms, capabilities
-  const texts = suiteFiles(suiteDir).map((file) => ({ file, text: readFileSync(file, 'utf8') }));
+  const texts =suiteFiles(suiteDir).map((file) => ({ file, text: readFileSync(file, 'utf8') }));
   result.scanned.harnessTerms = texts.length;
   for (const { file, text } of texts) {
     text.split('\n').forEach((line, i) => {
@@ -182,6 +209,24 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     else {
       for (const problem of validateConfig(section.config)) add(guidancePath, section.yamlLine, 'config', problem);
       if (!/rpi-workflow/.test(section.text)) add(guidancePath, section.startLine, 'config', 'the section does not reference the shared lifecycle in rpi-workflow');
+    }
+
+    // config-review: the configuration records the suite version it was last reviewed against. When the
+    // installed suite is newer, a review with rpi-init is due, whatever the release notes list.
+    const reviewed = section.config && typeof section.config.suite_version === 'string' ? section.config.suite_version : null;
+    if (reviewed && SEMVER.test(reviewed) && reference) {
+      const offset = section.text.split('\n').findIndex((l) => /^\s*suite_version:/.test(l));
+      const line = offset === -1 ? section.yamlLine : section.startLine + offset;
+      const order = compareVersions(reviewed, reference);
+      if (order > 0) {
+        add(guidancePath, line, 'config-review', `suite_version ${reviewed} is newer than the installed suite ${reference}; run task rpi:update`);
+      } else if (order < 0) {
+        const pending = pendingChanges(noteSections, reviewed, reference);
+        const listed = pending.length
+          ? `releases ${pending.map((n) => n.version).join(', ')} list configuration changes (${toPosix(relative(baseDir, notesFile))})`
+          : 'no configuration change is listed since then, so confirming the review only records it';
+        add(guidancePath, line, 'config-review', `the configuration was last reviewed for suite ${reviewed} but the installed suite is ${reference}; ${listed}; run the rpi-init skill to review it`);
+      }
     }
 
     // app-values
@@ -237,7 +282,7 @@ export function checkSuite({ suiteDir = thisSuiteDir, repoDir = null, suiteOnly 
     }
   }
 
-  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
+  for (const list of [findings, warnings]) list.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.rule.localeCompare(b.rule));
   return result;
 }
 
@@ -258,8 +303,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   try { args = parseArgs(process.argv.slice(2)); } catch (err) { console.error(err.message); process.exit(2); }
   const result = checkSuite({ suiteDir: args.suite ?? thisSuiteDir, repoDir: args.repo, suiteOnly: args.suiteOnly });
   for (const f of result.findings) console.log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
+  for (const f of result.warnings) console.log(`${f.file}:${f.line} ${f.rule} warning: ${f.message}`);
   for (const rule of result.skipped) console.log(`skipped ${rule} (suite-only mode)`);
-  const summary = `rpi suite ${result.version ?? '?'}: ${result.findings.length} finding(s)`;
+  const summary = `rpi suite ${result.version ?? '?'}: ${result.findings.length} finding(s)${result.warnings.length ? `, ${result.warnings.length} warning(s)` : ''}`;
   if (result.findings.length) { console.log(summary); process.exit(1); }
-  console.log(`${summary}; all checks passed`);
+  console.log(`${summary}; all checks passed${result.warnings.length ? ' (warnings do not fail the check)' : ''}`);
 }

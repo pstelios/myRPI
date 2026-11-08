@@ -45,6 +45,6 @@ Recommend choices that keep the shell minimal and runnable offline, and that use
 6. **Completed feature** `<features.completed>/project-shell/`: a brief (`status: confirmed`, `revision: 1`) describing the shell, a plan (`status: verified`) whose progress table marks every health check `passing`, and `project-shell.feature`, whose scenarios are the health checks, each naming its test. The `.feature` file goes to `<features.specifications>/<slug>/` when a specifications folder was chosen, and stays with the brief and plan otherwise.
 7. **Agent entry files**, only those the user named: each is a short pointer (at most a few lines) that tells the reader to follow the shared guidance file `AGENTS.md`, without repeating its content. Do not name `AGENTS_APP.md` there: `AGENTS.md` is the single starting point and tells the reader to read it.
 
-Then run the setup commands and the configured full verification (capability: command-run). Report the output. If anything fails, fix the shell within this write scope and run again; if it still fails, report the failure and do not claim the setup succeeded.
+Then run the setup commands, the configured full verification, and the suite check that the shared guidance file names (capability: command-run). Report the output. If anything fails, fix the shell within this write scope and run again; if it still fails, report the failure and do not claim the setup succeeded.
 
 Finish by telling the user that the next step is `rpi-refine` for the first feature, in a fresh session (capability: session-handoff).

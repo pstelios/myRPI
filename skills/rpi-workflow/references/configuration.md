@@ -13,7 +13,7 @@ The suite check parses a documented YAML subset: block maps and sequences, flow 
 
 | Key | Required | Meaning |
 |---|---|---|
-| `suite_version` | yes | Suite version this configuration was written for. A skill whose `metadata.version` has a different major version warns before continuing. |
+| `suite_version` | yes | A semantic version: the suite version this configuration was last reviewed against. `rpi-init` sets it to the installed suite version whenever the user confirms a review; it is never edited by hand. Whenever the installed suite is newer, the suite check fails until the review is done and the workflow skills warn before continuing; [configuration-changes.md](configuration-changes.md) lists what each release changes. |
 | `features.working` | yes | Folder that holds features under refinement, planning, or implementation. |
 | `features.completed` | yes | Folder that holds completed features: their brief and plan, and their `.feature` files unless `features.specifications` is set. |
 | `features.specifications` | no | Folder that holds the living behavior specification: the `.feature` files of completed features, in one `<slug>/` folder each. When set, archiving moves a feature's `.feature` files there and the rest of its folder to `features.completed`. When omitted, the `.feature` files stay in the completed folder. |
@@ -30,7 +30,7 @@ Values in angle brackets are placeholders. Leave out `specifications` when the s
 
 ```yaml
 rpi:
-  suite_version: 3.0.1
+  suite_version: 3.1.0
   features: { working: <working-folder>, completed: <completed-folder>, specifications: <specification-folder> }
   architecture: <architecture-document-or-none>
   verification:

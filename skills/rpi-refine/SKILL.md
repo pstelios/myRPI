@@ -5,7 +5,7 @@ argument-hint: "Describe the feature or name an existing feature brief"
 user-invocable: true
 metadata:
   suite: rpi
-  version: 3.0.1
+  version: 3.1.0
 ---
 
 # Refine a Feature

@@ -147,9 +147,34 @@ Feature: Portable RPI workflow skill suite
     Scenario: The suite check reports an installed copy that differs from myRPI
       Given an application with the suite and the shared guidance installed from myRPI
       When an installed suite file or the shared guidance is changed, or the installed suite has a different version
-      Then the suite check exits with a failure
-      And it reports each differing file, or the installed and myRPI versions, and tells the user to run "task rpi:update"
-      And the check passes again after the suite is installed again
+      Then the suite check reports each differing file, or the installed and myRPI versions, as a warning and tells the user to run "task rpi:update"
+      And the warning does not fail the check, because it reports drift from myRPI and not an inconsistency inside the project
+      And the check reports no warning after the suite is installed again
+
+    @static
+    Scenario: Every release states its configuration changes
+      Given the suite ships a configuration-changes file with one section per release
+      When the suite check runs in myRPI
+      Then every changelog entry has a "Configuration changes" subsection
+      And that text equals the release's section in the configuration-changes file
+      And the suite check fails naming the version when a section or subsection is missing or they differ
+
+    @static
+    Scenario: The suite check asks for a configuration review after a suite update
+      Given an application whose "suite_version" is older than the installed suite
+      When the suite check runs
+      Then it fails, reporting that a review is due and telling the user to run "rpi-init"
+      And it names the releases in between that list a configuration change, or says that none is listed
+      And it passes once "suite_version" equals the installed suite version
+      And it also fails a "suite_version" that is newer than the installed suite or not a semantic version
+
+    @static
+    Scenario: The installer shows the configuration changes since the last review
+      Given an application whose configuration was last reviewed for an older suite version
+      When the suite is installed into it from myRPI
+      Then the installer prints the configuration changes of the releases after that version, or says that none is listed
+      And it tells the user to run "rpi-init"
+      And the installer succeeds, because the review is the user's next step and not a failure of the update
 
   Rule: Agent behavior is verified automatically
 
@@ -211,6 +236,16 @@ Feature: Portable RPI workflow skill suite
       Given the repository guidance already has a "Feature workflow" section
       When the user starts "rpi-init" and confirms the proposed differences
       Then exactly one "Feature workflow" section exists
+
+    @agent
+    Scenario: rpi-init reviews the configuration against the release notes after a suite update
+      Given the repository's configuration was last reviewed for an older suite version
+      And a later release lists a configuration change in the suite's configuration-changes file
+      When the user starts "rpi-init" and confirms the proposed differences
+      Then it proposes the change that the release notes describe, based on repository evidence
+      And the configuration records the installed suite version as reviewed
+      And only the "Feature workflow" section of the application guidance file changes
+      And it finishes by running the suite check
 
   Rule: rpi-init bootstraps a new project through an interview
 

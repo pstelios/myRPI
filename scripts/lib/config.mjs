@@ -54,6 +54,7 @@ export function validateConfig(config) {
   const problems = [];
   if (!isMap(config)) return ['the configuration is not a map'];
   if (!nonEmptyString(config.suite_version)) problems.push('missing key suite_version');
+  else if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(config.suite_version)) problems.push('suite_version must be a semantic version such as 3.1.0');
   if (!isMap(config.features) || !nonEmptyString(config.features.working)) problems.push('missing key features.working');
   if (!isMap(config.features) || !nonEmptyString(config.features.completed)) problems.push('missing key features.completed');
   if (isMap(config.features) && config.features.specifications !== undefined && !nonEmptyString(config.features.specifications)) {

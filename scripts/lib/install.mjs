@@ -4,7 +4,8 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkSuite } from '../check-suite.mjs';
-import { GUIDANCE_FILE, SHARED_GUIDANCE_FILE, extractConfig } from './config.mjs';
+import { GUIDANCE_FILE, SHARED_GUIDANCE_FILE, extractConfig, loadConfig } from './config.mjs';
+import { SEMVER, compareVersions, pendingChanges, readNotes } from './release-notes.mjs';
 import { parseFrontmatter } from './frontmatter.mjs';
 import { isInside, mirrorSuite, thisSuiteDir } from './files.mjs';
 
@@ -43,6 +44,26 @@ function guidanceConflict(repo) {
   return null;
 }
 
+// Prints the configuration changes of the releases after the version the configuration was last
+// reviewed for (or, without a configuration, after the previously installed version).
+function reportConfigurationChanges({ repo, before, version, log }) {
+  const configured = repo !== null ? loadConfig(repo).section.config?.suite_version : null;
+  const from = typeof configured === 'string' && SEMVER.test(configured) ? configured : before;
+  if (!from || !version) return;
+  if (compareVersions(from, version) >= 0) return;
+  const pending = pendingChanges(readNotes(thisSuiteDir), from, version);
+  if (!pending.length) {
+    log(`The configuration was last reviewed for suite ${from}; no configuration change is listed up to ${version}.`);
+    return;
+  }
+  log(`Configuration changes since suite ${from}:`);
+  for (const note of pending) {
+    log(`\n${note.version}`);
+    log(note.body.split('\n').map((l) => `  ${l}`).join('\n'));
+  }
+  log('\nRun the rpi-init skill to review the configuration against these notes.');
+}
+
 // Installs the suite into <to> and, with <repo>, the shared guidance into the repository.
 // Returns the exit code: 0 success, 1 check findings, 2 refused (nothing changed).
 export function installSuite({ to, repo = null, appTitle, log = console.log, error = console.error }) {
@@ -69,9 +90,7 @@ export function installSuite({ to, repo = null, appTitle, log = console.log, err
   const version = versionAt(thisSuiteDir);
   mirrorSuite(thisSuiteDir, dest);
   log(`Installed rpi suite ${version} in ${dest}${before ? ` (was ${before})` : ''} from ${thisSuiteDir}`);
-  if (before && version && before.split('.')[0] !== version.split('.')[0]) {
-    log(`Major version changed (${before} -> ${version}): review the changelog for configuration changes.`);
-  }
+  reportConfigurationChanges({ repo, before, version, log });
 
   if (installGuidance) {
     writeFileSync(join(repo, SHARED_GUIDANCE_FILE), readFileSync(sharedGuidance));
@@ -86,10 +105,19 @@ export function installSuite({ to, repo = null, appTitle, log = console.log, err
   // Until rpi-init has written the configuration, only the suite itself can be checked.
   const configured = repo !== null && hasConfig(join(repo, GUIDANCE_FILE));
   const result = checkSuite({ suiteDir: dest, repoDir: repo, suiteOnly: !configured, base: repo ?? dest });
-  for (const f of result.findings) log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
-  if (result.findings.length) {
-    log(`Installed suite check: ${result.findings.length} finding(s)`);
+  // A configuration that is due for review is not a failure of the update: the update worked and the
+  // user is told to run rpi-init. Every other finding still fails it.
+  const review = result.findings.filter((f) => f.rule === 'config-review');
+  const errors = result.findings.filter((f) => f.rule !== 'config-review');
+  for (const f of errors) log(`${f.file}:${f.line} ${f.rule} ${f.message}`);
+  for (const f of result.warnings) log(`${f.file}:${f.line} ${f.rule} warning: ${f.message}`);
+  if (errors.length) {
+    log(`Installed suite check: ${errors.length} finding(s)`);
     return 1;
+  }
+  if (review.length) {
+    log(`The suite is installed. Next: run the rpi-init skill to review the configuration. Until then task rpi:check fails with: ${review[0].message}`);
+    return 0;
   }
   log(`Installed suite passes the ${configured ? 'repository' : 'suite-only'} check.`);
   if (repo !== null && !configured) log(`${GUIDANCE_FILE} has no "Feature workflow" configuration yet: run the rpi-init skill in the project.`);
